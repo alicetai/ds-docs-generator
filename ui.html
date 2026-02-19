@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 13px;
+      color: #111;
+      background: #fff;
+      padding: 24px 20px 20px;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .icon {
+      width: 32px;
+      height: 32px;
+      background: #6457f9;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .icon svg { display: block; }
+    h1 { font-size: 15px; font-weight: 600; color: #111; }
+    .subtitle {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    /* ── Component pill ── */
+    .component-pill {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      background: #f4f3ff;
+      border: 1px solid #dddaff;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 20px;
+    }
+    .component-pill.visible { display: flex; }
+    .pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #6457f9;
+      flex-shrink: 0;
+    }
+    .pill-label { font-size: 11px; color: #888; }
+    .pill-name  { font-size: 13px; font-weight: 600; color: #3730a3; }
+
+    /* ── Message ── */
+    .message {
+      display: none;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    .message.visible { display: flex; align-items: flex-start; gap: 8px; }
+    .message.error   { background: #fff1f1; color: #c0392b; border: 1px solid #ffc7c7; }
+    .message-icon { flex-shrink: 0; margin-top: 1px; }
+    .message.success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+
+    /* ── Loading ── */
+    .loading {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 16px;
+    }
+    .loading.visible { display: flex; }
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid #e5e7eb;
+      border-top-color: #6457f9;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Buttons ── */
+    .btn {
+      width: 100%;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s, opacity 0.15s;
+      margin-bottom: 8px;
+    }
+    .btn-primary { background: #6457f9; color: #fff; }
+    .btn-primary:hover { background: #5244e0; }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="icon">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <rect x="2" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.9"/>
+        <rect x="10" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.6"/>
+        <rect x="2" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.6"/>
+        <rect x="10" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.3"/>
+      </svg>
+    </div>
+    <h1>Design System Docs</h1>
+  </div>
+  <p class="subtitle">Select a component in Figma and generate<br>documentation for your design system.</p>
+
+  <div id="componentPill" class="component-pill">
+    <div class="pill-dot"></div>
+    <div>
+      <div class="pill-label">Selected component</div>
+      <div class="pill-name" id="componentName"></div>
+    </div>
+  </div>
+
+  <div id="message" class="message"></div>
+
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+    <span>Generating documentation…</span>
+  </div>
+
+  <button id="generateBtn" class="btn btn-primary" onclick="onGenerate()">
+    Generate documentation
+  </button>
+
+  <script>
+    // ── State ────────────────────────────────────────────────────────────────
+    let pendingComponentName = null;
+
+    // ── Receive messages from plugin code ────────────────────────────────────
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      if (!msg) return;
+
+      if (msg.type === 'selection-changed') {
+        if (msg.componentName) {
+          pendingComponentName = msg.componentName;
+          document.getElementById('componentName').textContent = msg.componentName;
+          document.getElementById('componentPill').classList.add('visible');
+          hideMessage();
+        } else {
+          pendingComponentName = null;
+          document.getElementById('componentPill').classList.remove('visible');
+          if (msg.nodeType) {
+            var label = msg.nodeType.charAt(0) + msg.nodeType.slice(1).toLowerCase().replace('_', ' ');
+            showMessage('Please select a component', 'error');
+          } else {
+            hideMessage();
+          }
+        }
+      }
+
+      if (msg.type === 'component-found') {
+        renderDocs(msg.componentName);
+      }
+
+      if (msg.type === 'error') {
+        showMessage(msg.message, 'error');
+        setLoading(false);
+      }
+
+      if (msg.type === 'success') {
+        setLoading(false);
+      }
+    };
+
+    // ── Button handlers ──────────────────────────────────────────────────────
+    function onGenerate() {
+      hideMessage();
+      parent.postMessage({ pluginMessage: { type: 'generate-docs' } }, '*');
+    }
+
+
+    // ── Build generic docs and send to plugin ────────────────────────────────
+    function renderDocs(name) {
+      setLoading(true);
+      hideMessage();
+
+      const sections = buildSections(name);
+
+      parent.postMessage({
+        pluginMessage: { type: 'render-docs', componentName: name, sections }
+      }, '*');
+    }
+
+    // ── Generic documentation template ───────────────────────────────────────
+    function buildSections(name) {
+      return [
+        {
+          heading: '01 — Overview',
+          title: 'Introduction',
+          body:
+`The ${name} component is a reusable UI building block used across the design system to provide a consistent experience. It is designed to be flexible, accessible, and easy to integrate into any layout or product surface.
+
+The ${name} follows established design system tokens for colour, typography, spacing, and elevation. All visual variants are documented in the component's Figma page and correspond 1:1 with the front-end implementation.`,
+        },
+        {
+          heading: '02 — Usage',
+          title: 'When to Use',
+          body:
+`When to use:
+Use the ${name} when you need to present this type of content or interaction in a consistent, recognisable way. Prefer this component over a custom implementation to maintain visual and behavioural consistency across the product.
+
+When not to use:
+Avoid using the ${name} in contexts where its function would be ambiguous or misleading to users. If the interaction pattern differs significantly from what this component implies, consider an alternative component or raise a request with the design system team.`,
+        },
+        {
+          heading: '03 — Guidelines',
+          title: 'General Usage Guidelines',
+          body:
+`Content & Messaging:
+Keep any text within the ${name} concise and action-oriented. Use sentence case for labels and avoid punctuation at the end of short phrases. Ensure copy is localisation-friendly and does not rely on fixed-width assumptions.
+
+Alignment & Grouping:
+Align the ${name} with surrounding elements using the 8pt grid. When grouping multiple instances, maintain consistent spacing using spacing tokens (space-2, space-4, etc.) rather than arbitrary values.
+
+Interactions:
+The ${name} should support hover, focus, active, and disabled states at minimum. Transitions should use the system's standard duration (150ms ease-in-out). Avoid adding interactions that conflict with native browser behaviour.
+
+Accessibility:
+Ensure the ${name} meets WCAG 2.1 AA contrast requirements. Provide a descriptive aria-label when the visible label alone is insufficient. The component must be fully operable via keyboard and announce its state correctly to screen readers.`,
+        },
+        {
+          heading: '04 — Responsive',
+          title: 'Responsive Guidelines',
+          body:
+`Desktop:
+On desktop viewports (≥1024px), the ${name} can be displayed at full size with all optional elements visible. Maintain a minimum touch/click target of 44×44px even on pointer devices. Allow the component to grow or shrink fluidly within its container using auto-layout.
+
+Mobile:
+On mobile viewports (<768px), simplify the ${name} where necessary — hide secondary actions, reduce padding, and increase tap targets to at least 48×48px. Stack elements vertically if horizontal space is insufficient. Test on both iOS Safari and Android Chrome to catch platform-specific rendering differences.`,
+        },
+      ];
+    }
+
+    // ── UI helpers ───────────────────────────────────────────────────────────
+    function setLoading(on) {
+      document.getElementById('loading').classList.toggle('visible', on);
+      document.getElementById('generateBtn').disabled = on;
+    }
+
+    function showMessage(text, type) {
+      const el = document.getElementById('message');
+      var icon = type === 'error'
+        ? '<svg class="message-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="7" cy="7" r="7" fill="#c0392b"/><rect x="6.3" y="3.5" width="1.4" height="4.2" rx="0.7" fill="white"/><rect x="6.3" y="9.1" width="1.4" height="1.4" rx="0.7" fill="white"/></svg>'
+        : '';
+      el.innerHTML = icon + '<span>' + text + '</span>';
+      el.className = 'message ' + type + ' visible';
+    }
+
+    function hideMessage() {
+      document.getElementById('message').className = 'message';
+    }
+  </script>
+</body>
+</html>
