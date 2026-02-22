@@ -2,6 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.5.1/github-markdown-light.min.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -10,7 +11,24 @@
       font-size: 13px;
       color: #111;
       background: #fff;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    .sidebar {
+      width: 25%;
       padding: 24px 20px 20px;
+      overflow-y: auto;
+      border-right: 1px solid #e5e7eb;
+    }
+    
+    .preview-container {
+      width: 75%;
+      overflow-y: auto;
+      background: #fafafa;
     }
 
     /* ── Header ── */
@@ -111,45 +129,209 @@
     .btn-primary:hover { background: #5244e0; }
     .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
 
+
+    /* ── Preview Section ── */
+    .preview-section {
+      display: none;
+      height: 100%;
+    }
+    .preview-section.visible { display: flex; flex-direction: column; }
+    
+    .preview-tabs {
+      display: flex;
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+      flex-shrink: 0;
+    }
+    .preview-tab {
+      flex: 1;
+      padding: 10px;
+      font-size: 12px;
+      font-weight: 500;
+      text-align: center;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      color: #666;
+      transition: all 0.15s;
+    }
+    .preview-tab.active {
+      color: #6457f9;
+      border-bottom-color: #6457f9;
+      background: white;
+    }
+    
+    .preview-content {
+      flex: 1;
+      overflow-y: auto;
+      background: white;
+      display: flex;
+      flex-direction: column;
+    }
+    .preview-pane {
+      display: none;
+      padding: 24px;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .preview-pane.active { display: block; }
+    
+    .preview-edit {
+      width: 100%;
+      height: 100%;
+      padding: 12px;
+      font-family: ui-monospace, 'SF Mono', Monaco, 'Cascadia Code', monospace;
+      font-size: 11px;
+      line-height: 1.6;
+      border: none;
+      resize: none;
+      outline: none;
+      background: #fafafa;
+    }
+    
+    .markdown-body {
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    
+    /* ── Empty State ── */
+    .preview-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #999;
+      font-size: 14px;
+      text-align: center;
+      padding: 40px;
+    }
+    .markdown-body h1 { font-size: 16px; margin-top: 0; margin-bottom: 8px; }
+    .markdown-body h2 { font-size: 14px; margin-top: 16px; margin-bottom: 6px; }
+    .markdown-body h3 { font-size: 12px; margin-top: 12px; margin-bottom: 4px; }
+    .markdown-body p { margin-bottom: 8px; }
+    .markdown-body ul, .markdown-body ol { margin-bottom: 8px; padding-left: 20px; }
+  </style>
   </style>
 </head>
 <body>
-
-  <div class="header">
-    <div class="icon">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-        <rect x="2" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.9"/>
-        <rect x="10" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.6"/>
-        <rect x="2" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.6"/>
-        <rect x="10" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.3"/>
-      </svg>
+  <div class="sidebar">
+    <div class="header">
+      <div class="icon">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <rect x="2" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.9"/>
+          <rect x="10" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.6"/>
+          <rect x="2" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.6"/>
+          <rect x="10" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.3"/>
+        </svg>
+      </div>
+      <h1>Design System Docs</h1>
     </div>
-    <h1>Design System Docs</h1>
-  </div>
-  <p class="subtitle">Select a component in Figma and generate<br>documentation for your design system.</p>
+    <p class="subtitle">Select a component in Figma and generate documentation for your design system.</p>
 
-  <div id="componentPill" class="component-pill">
-    <div class="pill-dot"></div>
-    <div>
-      <div class="pill-label">Selected component</div>
-      <div class="pill-name" id="componentName"></div>
+    <div id="componentPill" class="component-pill">
+      <div class="pill-dot"></div>
+      <div>
+        <div class="pill-label">Selected component</div>
+        <div class="pill-name" id="componentName"></div>
+      </div>
+    </div>
+
+    <div id="message" class="message"></div>
+
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <span>Generating documentation…</span>
+    </div>
+
+    <button id="generateBtn" class="btn btn-primary" onclick="onGenerate()">
+      Generate documentation
+    </button>
+  </div>
+
+  <div class="preview-container">
+    <div id="previewEmpty" class="preview-empty">
+      <div>Select a component to preview documentation</div>
+    </div>
+    <div id="previewSection" class="preview-section">
+      <div class="preview-tabs">
+        <button class="preview-tab active" onclick="switchTab('preview')">Preview</button>
+        <button class="preview-tab" onclick="switchTab('edit')">Edit</button>
+      </div>
+      <div class="preview-content">
+        <div id="previewPane" class="preview-pane active markdown-body"></div>
+        <div id="editPane" class="preview-pane">
+          <textarea id="markdownEditor" class="preview-edit" oninput="updatePreview()"></textarea>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div id="message" class="message"></div>
-
-  <div id="loading" class="loading">
-    <div class="spinner"></div>
-    <span>Generating documentation…</span>
-  </div>
-
-  <button id="generateBtn" class="btn btn-primary" onclick="onGenerate()">
-    Generate documentation
-  </button>
-
+<script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
   <script>
     // ── State ────────────────────────────────────────────────────────────────
     let pendingComponentName = null;
+    let currentMarkdown = '';
+    let currentActiveTab = 'preview';
+
+
+    // ── Build markdown from sections ─────────────────────────────────────────
+    function buildMarkdown(name) {
+      const sections = buildSections(name);
+      let md = '# ' + name + '\n\n';
+      
+      sections.forEach(section => {
+        md += '## ' + section.title + '\n\n';
+        md += section.body.replace(/\n/g, '\n\n') + '\n\n';
+      });
+      
+      return md;
+    }
+
+    // ── Update preview from markdown ─────────────────────────────────────────
+    function updatePreview() {
+      try {
+        currentMarkdown = document.getElementById('markdownEditor').value;
+        document.getElementById('previewPane').innerHTML = marked.parse(currentMarkdown);
+      } catch (error) {
+        console.error('Error in updatePreview:', error);
+      }
+    }
+
+    // ── Switch between preview and edit tabs ─────────────────────────────────
+    function switchTab(tab) {
+      currentActiveTab = tab;
+      document.querySelectorAll('.preview-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.preview-pane').forEach(p => p.classList.remove('active'));
+      
+      if (tab === 'preview') {
+        document.querySelectorAll('.preview-tab')[0].classList.add('active');
+        document.getElementById('previewPane').classList.add('active');
+      } else {
+        document.querySelectorAll('.preview-tab')[1].classList.add('active');
+        document.getElementById('editPane').classList.add('active');
+      }
+    }
+
+    // ── Show preview section with content ────────────────────────────────────
+    function showPreview(name) {
+      try {
+        currentMarkdown = buildMarkdown(name);
+        document.getElementById('markdownEditor').value = currentMarkdown;
+        document.getElementById('previewPane').innerHTML = marked.parse(currentMarkdown);
+        document.getElementById('previewEmpty').style.display = 'none';
+        document.getElementById('previewSection').classList.add('visible');
+      } catch (error) {
+        console.error('Error in showPreview:', error);
+      }
+    }
+
+    // ── Hide preview section ─────────────────────────────────────────────────
+    function hidePreview() {
+      document.getElementById('previewSection').classList.remove('visible');
+      document.getElementById('previewEmpty').style.display = 'flex';
+      currentMarkdown = '';
+    }
 
     // ── Receive messages from plugin code ────────────────────────────────────
     window.onmessage = (event) => {
@@ -161,13 +343,15 @@
           pendingComponentName = msg.componentName;
           document.getElementById('componentName').textContent = msg.componentName;
           document.getElementById('componentPill').classList.add('visible');
+          showPreview(msg.componentName);
           hideMessage();
         } else {
           pendingComponentName = null;
           document.getElementById('componentPill').classList.remove('visible');
+          hidePreview();
           if (msg.nodeType) {
             var label = msg.nodeType.charAt(0) + msg.nodeType.slice(1).toLowerCase().replace('_', ' ');
-            showMessage('Please select a component', 'error');
+            showMessage('Please select a component, not a ' + label + '.', 'error');
           } else {
             hideMessage();
           }
@@ -200,11 +384,33 @@
       setLoading(true);
       hideMessage();
 
-      const sections = buildSections(name);
+      // Parse the markdown back to sections
+      const sections = parseMarkdownToSections(currentMarkdown);
 
       parent.postMessage({
         pluginMessage: { type: 'render-docs', componentName: name, sections }
       }, '*');
+    }
+
+    // ── Parse markdown back to sections structure ────────────────────────────
+    function parseMarkdownToSections(markdown) {
+      // Simple parser: split by ## headings
+      var parts = markdown.split(/^## /m).slice(1); // Skip the # title
+      var sections = [];
+      
+      parts.forEach(function(part, idx) {
+        var lines = part.split('\n');
+        var title = lines[0].trim();
+        var body = lines.slice(1).join('\n').trim().replace(/\n\n/g, '\n');
+        
+        var heading = '0' + (idx + 1) + ' — ' + title.split(' ').map(function(w) {
+          return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+        }).join(' ');
+        
+        sections.push({ heading: heading, title: title, body: body });
+      });
+      
+      return sections;
     }
 
     // ── Generic documentation template ───────────────────────────────────────
@@ -214,45 +420,39 @@
           heading: '01 — Overview',
           title: 'Introduction',
           body:
-`The ${name} component is a reusable UI building block used across the design system to provide a consistent experience. It is designed to be flexible, accessible, and easy to integrate into any layout or product surface.
-
-The ${name} follows established design system tokens for colour, typography, spacing, and elevation. All visual variants are documented in the component's Figma page and correspond 1:1 with the front-end implementation.`,
+'The ' + name + ' component is a reusable UI building block used across the design system to provide a consistent experience. It is designed to be flexible, accessible, and easy to integrate into any layout or product surface.\n\n' +
+'The ' + name + ' follows established design system tokens for colour, typography, spacing, and elevation. All visual variants are documented in the component\'s Figma page and correspond 1:1 with the front-end implementation.',
         },
         {
           heading: '02 — Usage',
           title: 'When to Use',
           body:
-`When to use:
-Use the ${name} when you need to present this type of content or interaction in a consistent, recognisable way. Prefer this component over a custom implementation to maintain visual and behavioural consistency across the product.
-
-When not to use:
-Avoid using the ${name} in contexts where its function would be ambiguous or misleading to users. If the interaction pattern differs significantly from what this component implies, consider an alternative component or raise a request with the design system team.`,
+'When to use:\n' +
+'Use the ' + name + ' when you need to present this type of content or interaction in a consistent, recognisable way. Prefer this component over a custom implementation to maintain visual and behavioural consistency across the product.\n\n' +
+'When not to use:\n' +
+'Avoid using the ' + name + ' in contexts where its function would be ambiguous or misleading to users. If the interaction pattern differs significantly from what this component implies, consider an alternative component or raise a request with the design system team.',
         },
         {
           heading: '03 — Guidelines',
           title: 'General Usage Guidelines',
           body:
-`Content & Messaging:
-Keep any text within the ${name} concise and action-oriented. Use sentence case for labels and avoid punctuation at the end of short phrases. Ensure copy is localisation-friendly and does not rely on fixed-width assumptions.
-
-Alignment & Grouping:
-Align the ${name} with surrounding elements using the 8pt grid. When grouping multiple instances, maintain consistent spacing using spacing tokens (space-2, space-4, etc.) rather than arbitrary values.
-
-Interactions:
-The ${name} should support hover, focus, active, and disabled states at minimum. Transitions should use the system's standard duration (150ms ease-in-out). Avoid adding interactions that conflict with native browser behaviour.
-
-Accessibility:
-Ensure the ${name} meets WCAG 2.1 AA contrast requirements. Provide a descriptive aria-label when the visible label alone is insufficient. The component must be fully operable via keyboard and announce its state correctly to screen readers.`,
+'Content & Messaging:\n' +
+'Keep any text within the ' + name + ' concise and action-oriented. Use sentence case for labels and avoid punctuation at the end of short phrases. Ensure copy is localisation-friendly and does not rely on fixed-width assumptions.\n\n' +
+'Alignment & Grouping:\n' +
+'Align the ' + name + ' with surrounding elements using the 8pt grid. When grouping multiple instances, maintain consistent spacing using spacing tokens (space-2, space-4, etc.) rather than arbitrary values.\n\n' +
+'Interactions:\n' +
+'The ' + name + ' should support hover, focus, active, and disabled states at minimum. Transitions should use the system\'s standard duration (150ms ease-in-out). Avoid adding interactions that conflict with native browser behaviour.\n\n' +
+'Accessibility:\n' +
+'Ensure the ' + name + ' meets WCAG 2.1 AA contrast requirements. Provide a descriptive aria-label when the visible label alone is insufficient. The component must be fully operable via keyboard and announce its state correctly to screen readers.',
         },
         {
           heading: '04 — Responsive',
           title: 'Responsive Guidelines',
           body:
-`Desktop:
-On desktop viewports (≥1024px), the ${name} can be displayed at full size with all optional elements visible. Maintain a minimum touch/click target of 44×44px even on pointer devices. Allow the component to grow or shrink fluidly within its container using auto-layout.
-
-Mobile:
-On mobile viewports (<768px), simplify the ${name} where necessary — hide secondary actions, reduce padding, and increase tap targets to at least 48×48px. Stack elements vertically if horizontal space is insufficient. Test on both iOS Safari and Android Chrome to catch platform-specific rendering differences.`,
+'Desktop:\n' +
+'On desktop viewports (≥1024px), the ' + name + ' can be displayed at full size with all optional elements visible. Maintain a minimum touch/click target of 44×44px even on pointer devices. Allow the component to grow or shrink fluidly within its container using auto-layout.\n\n' +
+'Mobile:\n' +
+'On mobile viewports (<768px), simplify the ' + name + ' where necessary — hide secondary actions, reduce padding, and increase tap targets to at least 48×48px. Stack elements vertically if horizontal space is insufficient. Test on both iOS Safari and Android Chrome to catch platform-specific rendering differences.',
         },
       ];
     }
@@ -265,9 +465,7 @@ On mobile viewports (<768px), simplify the ${name} where necessary — hide seco
 
     function showMessage(text, type) {
       const el = document.getElementById('message');
-      var icon = type === 'error'
-        ? '<svg class="message-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="7" cy="7" r="7" fill="#c0392b"/><rect x="6.3" y="3.5" width="1.4" height="4.2" rx="0.7" fill="white"/><rect x="6.3" y="9.1" width="1.4" height="1.4" rx="0.7" fill="white"/></svg>'
-        : '';
+      var icon = type === 'error' ? '<svg class="message-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="7" cy="7" r="7" fill="#c0392b"/><rect x="6.3" y="3.5" width="1.4" height="4.2" rx="0.7" fill="white"/><rect x="6.3" y="9.1" width="1.4" height="1.4" rx="0.7" fill="white"/></svg>' : '';
       el.innerHTML = icon + '<span>' + text + '</span>';
       el.className = 'message ' + type + ' visible';
     }
@@ -277,4 +475,3 @@ On mobile viewports (<768px), simplify the ${name} where necessary — hide seco
     }
   </script>
 </body>
-</html>
