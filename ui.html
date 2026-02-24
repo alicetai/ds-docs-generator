@@ -19,14 +19,14 @@
     }
     
     .sidebar {
-      width: 25%;
+      width: 33.33%;
       padding: 24px 20px 20px;
       overflow-y: auto;
       border-right: 1px solid #e5e7eb;
     }
     
     .preview-container {
-      width: 75%;
+      width: 66.67%;
       overflow-y: auto;
       background: #fafafa;
     }
@@ -401,7 +401,7 @@
       parts.forEach(function(part, idx) {
         var lines = part.split('\n');
         var title = lines[0].trim();
-        var body = lines.slice(1).join('\n').trim().replace(/\n\n/g, '\n');
+        var body = lines.slice(1).join('\n').trim().replace(/\n{3,}/g, '\n\n');
         
         var heading = '0' + (idx + 1) + ' — ' + title.split(' ').map(function(w) {
           return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();

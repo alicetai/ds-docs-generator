@@ -1,7 +1,7 @@
 // Design System Docs Generator
 // Generates generic documentation for the selected component
 
-figma.showUI(__html__, { width: 1600, height: 600 });
+figma.showUI(__html__, { width: 1000, height: 600 });
 
 // Notify UI of the current selection immediately on plugin open
 function isComponent(node) {
