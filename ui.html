@@ -4,10 +4,15 @@
   <meta charset="utf-8" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.5.1/github-markdown-light.min.css">
   <style>
+    :root {
+      --color-purple: #6457f9;
+      --color-secondary: #717680;
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       font-size: 13px;
       color: #111;
       background: #fff;
@@ -17,14 +22,14 @@
       height: 100vh;
       overflow: hidden;
     }
-    
+
     .sidebar {
       width: 33.33%;
       padding: 24px 20px 20px;
       overflow-y: auto;
       border-right: 1px solid #e5e7eb;
     }
-    
+
     .preview-container {
       width: 66.67%;
       overflow-y: auto;
@@ -41,7 +46,7 @@
     .icon {
       width: 32px;
       height: 32px;
-      background: #6457f9;
+      background: var(--color-purple);
       border-radius: 8px;
       display: flex;
       align-items: center;
@@ -52,7 +57,7 @@
     h1 { font-size: 15px; font-weight: 600; color: #111; }
     .subtitle {
       font-size: 12px;
-      color: #888;
+      color: var(--color-secondary);
       margin-bottom: 24px;
       line-height: 1.5;
     }
@@ -73,7 +78,7 @@
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #6457f9;
+      background: var(--color-purple);
       flex-shrink: 0;
     }
     .pill-label { font-size: 11px; color: #888; }
@@ -93,20 +98,20 @@
     .message-icon { flex-shrink: 0; margin-top: 1px; }
     .message.success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
 
-    /* ── Loading ── */
+    /* ── Sidebar loading (for Add documentation) ── */
     .loading {
       display: none;
       align-items: center;
       gap: 10px;
       font-size: 12px;
-      color: #888;
+      color: var(--color-secondary);
       margin-bottom: 16px;
     }
     .loading.visible { display: flex; }
     .spinner {
       width: 16px; height: 16px;
       border: 2px solid #e5e7eb;
-      border-top-color: #6457f9;
+      border-top-color: var(--color-purple);
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
       flex-shrink: 0;
@@ -124,8 +129,12 @@
       border: none;
       transition: background 0.15s, opacity 0.15s;
       margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
-    .btn-primary { background: #6457f9; color: #fff; }
+    .btn-primary { background: var(--color-purple); color: #fff; }
     .btn-primary:hover { background: #5244e0; }
     .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
 
@@ -136,7 +145,7 @@
       height: 100%;
     }
     .preview-section.visible { display: flex; flex-direction: column; }
-    
+
     .preview-tabs {
       display: flex;
       background: #fff;
@@ -157,11 +166,11 @@
       transition: all 0.15s;
     }
     .preview-tab.active {
-      color: #6457f9;
-      border-bottom-color: #6457f9;
+      color: var(--color-purple);
+      border-bottom-color: var(--color-purple);
       background: white;
     }
-    
+
     .preview-content {
       flex: 1;
       overflow-y: auto;
@@ -176,7 +185,7 @@
       overflow-y: auto;
     }
     .preview-pane.active { display: block; }
-    
+
     .preview-edit {
       width: 100%;
       height: 100%;
@@ -189,12 +198,26 @@
       outline: none;
       background: #fafafa;
     }
-    
+
     .markdown-body {
       font-size: 12px;
       line-height: 1.6;
     }
-    
+
+    /* ── Preview Footer (Add documentation button) ── */
+    .preview-footer {
+      padding: 12px 16px;
+      border-top: 1px solid #e5e7eb;
+      background: #fff;
+      flex-shrink: 0;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .preview-footer .btn {
+      width: auto;
+      margin-bottom: 0;
+    }
+
     /* ── Empty State ── */
     .preview-empty {
       display: flex;
@@ -206,12 +229,30 @@
       text-align: center;
       padding: 40px;
     }
+
+    /* ── Preview Loading State ── */
+    .preview-loading {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 14px;
+      height: 100%;
+      color: var(--color-secondary);
+      font-size: 13px;
+    }
+    .preview-loading.visible { display: flex; }
+    .preview-loading .spinner {
+      width: 24px;
+      height: 24px;
+      border-width: 2.5px;
+    }
+
     .markdown-body h1 { font-size: 16px; margin-top: 0; margin-bottom: 8px; }
     .markdown-body h2 { font-size: 14px; margin-top: 16px; margin-bottom: 6px; }
     .markdown-body h3 { font-size: 12px; margin-top: 12px; margin-bottom: 4px; }
     .markdown-body p { margin-bottom: 8px; }
     .markdown-body ul, .markdown-body ol { margin-bottom: 8px; padding-left: 20px; }
-  </style>
   </style>
 </head>
 <body>
@@ -241,10 +282,13 @@
 
     <div id="loading" class="loading">
       <div class="spinner"></div>
-      <span>Generating documentation…</span>
+      <span>Adding to Figma…</span>
     </div>
 
     <button id="generateBtn" class="btn btn-primary" onclick="onGenerate()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6.07134 3.63198C6.47 2.46531 8.082 2.42998 8.55467 3.52598L8.59467 3.63265L9.13267 5.20598C9.25596 5.5668 9.45521 5.89699 9.71696 6.17426C9.97871 6.45154 10.2969 6.66945 10.65 6.81331L10.7947 6.86731L12.368 7.40465C13.5347 7.80331 13.57 9.41531 12.4747 9.88798L12.368 9.92798L10.7947 10.466C10.4337 10.5892 10.1034 10.7884 9.82601 11.0502C9.54862 11.3119 9.3306 11.6301 9.18667 11.9833L9.13267 12.1273L8.59534 13.7013C8.19667 14.868 6.58467 14.9033 6.11267 13.808L6.07134 13.7013L5.534 12.128C5.41079 11.767 5.21158 11.4367 4.94983 11.1593C4.68808 10.8819 4.36986 10.6639 4.01667 10.52L3.87267 10.466L2.29933 9.92865C1.132 9.52998 1.09667 7.91798 2.19267 7.44598L2.29933 7.40465L3.87267 6.86731C4.23349 6.74402 4.56368 6.54478 4.84095 6.28303C5.11823 6.02128 5.33614 5.70311 5.48 5.34998L5.534 5.20598L6.07134 3.63198ZM7.33334 4.06265L6.796 5.63598C6.60826 6.18618 6.30285 6.68885 5.90103 7.10898C5.4992 7.52911 5.01063 7.8566 4.46933 8.06865L4.30267 8.12931L2.72933 8.66665L4.30267 9.20398C4.85287 9.39172 5.35554 9.69714 5.77567 10.099C6.19579 10.5008 6.52329 10.9893 6.73534 11.5306L6.796 11.6973L7.33334 13.2706L7.87067 11.6973C8.05841 11.1471 8.36382 10.6444 8.76564 10.2243C9.16747 9.80419 9.65604 9.4767 10.1973 9.26465L10.364 9.20465L11.9373 8.66665L10.364 8.12931C9.8138 7.94157 9.31113 7.63616 8.891 7.23434C8.47088 6.83252 8.14339 6.34395 7.93134 5.80265L7.87134 5.63598L7.33334 4.06265ZM12.6667 1.33331C12.7914 1.33331 12.9136 1.3683 13.0194 1.43429C13.1253 1.50029 13.2105 1.59465 13.2653 1.70665L13.2973 1.78465L13.5307 2.46865L14.2153 2.70198C14.3403 2.74444 14.4499 2.82306 14.5302 2.92786C14.6104 3.03266 14.6578 3.15893 14.6662 3.29066C14.6746 3.4224 14.6437 3.55367 14.5775 3.66784C14.5112 3.78201 14.4126 3.87394 14.294 3.93198L14.2153 3.96398L13.5313 4.19731L13.298 4.88198C13.2555 5.00693 13.1768 5.11645 13.072 5.19664C12.9671 5.27684 12.8408 5.32411 12.7091 5.33246C12.5774 5.34082 12.4461 5.30988 12.332 5.24357C12.2179 5.17726 12.126 5.07856 12.068 4.95998L12.036 4.88198L11.8027 4.19798L11.118 3.96465C10.993 3.92218 10.8834 3.84357 10.8032 3.73877C10.7229 3.63397 10.6756 3.5077 10.6672 3.37597C10.6587 3.24423 10.6896 3.11296 10.7559 2.99879C10.8221 2.88462 10.9208 2.79269 11.0393 2.73465L11.118 2.70265L11.802 2.46931L12.0353 1.78465C12.0803 1.65293 12.1653 1.53859 12.2786 1.45765C12.3918 1.37671 12.5275 1.33323 12.6667 1.33331Z" fill="white"/>
+      </svg>
       Generate documentation
     </button>
   </div>
@@ -252,6 +296,10 @@
   <div class="preview-container">
     <div id="previewEmpty" class="preview-empty">
       <div>Select a component to preview documentation</div>
+    </div>
+    <div id="previewLoading" class="preview-loading">
+      <div class="spinner"></div>
+      <span>Generating documentation…</span>
     </div>
     <div id="previewSection" class="preview-section">
       <div class="preview-tabs">
@@ -263,6 +311,9 @@
         <div id="editPane" class="preview-pane">
           <textarea id="markdownEditor" class="preview-edit" oninput="updatePreview()"></textarea>
         </div>
+      </div>
+      <div class="preview-footer">
+        <button id="addDocBtn" class="btn btn-primary" onclick="onAddDocumentation()">Add to Figma</button>
       </div>
     </div>
   </div>
@@ -279,12 +330,12 @@
     function buildMarkdown(name) {
       const sections = buildSections(name);
       let md = '# ' + name + '\n\n';
-      
+
       sections.forEach(section => {
         md += '## ' + section.title + '\n\n';
         md += section.body.replace(/\n/g, '\n\n') + '\n\n';
       });
-      
+
       return md;
     }
 
@@ -303,7 +354,7 @@
       currentActiveTab = tab;
       document.querySelectorAll('.preview-tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.preview-pane').forEach(p => p.classList.remove('active'));
-      
+
       if (tab === 'preview') {
         document.querySelectorAll('.preview-tab')[0].classList.add('active');
         document.getElementById('previewPane').classList.add('active');
@@ -320,6 +371,7 @@
         document.getElementById('markdownEditor').value = currentMarkdown;
         document.getElementById('previewPane').innerHTML = marked.parse(currentMarkdown);
         document.getElementById('previewEmpty').style.display = 'none';
+        document.getElementById('previewLoading').classList.remove('visible');
         document.getElementById('previewSection').classList.add('visible');
       } catch (error) {
         console.error('Error in showPreview:', error);
@@ -329,6 +381,7 @@
     // ── Hide preview section ─────────────────────────────────────────────────
     function hidePreview() {
       document.getElementById('previewSection').classList.remove('visible');
+      document.getElementById('previewLoading').classList.remove('visible');
       document.getElementById('previewEmpty').style.display = 'flex';
       currentMarkdown = '';
     }
@@ -343,8 +396,9 @@
           pendingComponentName = msg.componentName;
           document.getElementById('componentName').textContent = msg.componentName;
           document.getElementById('componentPill').classList.add('visible');
-          showPreview(msg.componentName);
           hideMessage();
+          // Reset preview — user must click Generate to populate it
+          hidePreview();
         } else {
           pendingComponentName = null;
           document.getElementById('componentPill').classList.remove('visible');
@@ -368,16 +422,32 @@
       }
 
       if (msg.type === 'success') {
-        setLoading(false);
+        parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
       }
     };
 
     // ── Button handlers ──────────────────────────────────────────────────────
     function onGenerate() {
+      if (!pendingComponentName) return;
+      hideMessage();
+
+      // Show loading state in preview area
+      document.getElementById('previewSection').classList.remove('visible');
+      document.getElementById('previewEmpty').style.display = 'none';
+      document.getElementById('previewLoading').classList.add('visible');
+      document.getElementById('generateBtn').disabled = true;
+
+      // After 3 seconds, load the preview
+      setTimeout(function() {
+        document.getElementById('generateBtn').disabled = false;
+        showPreview(pendingComponentName);
+      }, 3000);
+    }
+
+    function onAddDocumentation() {
       hideMessage();
       parent.postMessage({ pluginMessage: { type: 'generate-docs' } }, '*');
     }
-
 
     // ── Build generic docs and send to plugin ────────────────────────────────
     function renderDocs(name) {
@@ -397,19 +467,15 @@
       // Simple parser: split by ## headings
       var parts = markdown.split(/^## /m).slice(1); // Skip the # title
       var sections = [];
-      
+
       parts.forEach(function(part, idx) {
         var lines = part.split('\n');
         var title = lines[0].trim();
         var body = lines.slice(1).join('\n').trim().replace(/\n{3,}/g, '\n\n');
-        
-        var heading = '0' + (idx + 1) + ' — ' + title.split(' ').map(function(w) {
-          return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
-        }).join(' ');
-        
-        sections.push({ heading: heading, title: title, body: body });
+
+        sections.push({ title: title, body: body });
       });
-      
+
       return sections;
     }
 
@@ -417,15 +483,13 @@
     function buildSections(name) {
       return [
         {
-          heading: '01 — Overview',
           title: 'Introduction',
           body:
 'The ' + name + ' component is a reusable UI building block used across the design system to provide a consistent experience. It is designed to be flexible, accessible, and easy to integrate into any layout or product surface.\n\n' +
 'The ' + name + ' follows established design system tokens for colour, typography, spacing, and elevation. All visual variants are documented in the component\'s Figma page and correspond 1:1 with the front-end implementation.',
         },
         {
-          heading: '02 — Usage',
-          title: 'When to Use',
+          title: 'When to use',
           body:
 'When to use:\n' +
 'Use the ' + name + ' when you need to present this type of content or interaction in a consistent, recognisable way. Prefer this component over a custom implementation to maintain visual and behavioural consistency across the product.\n\n' +
@@ -433,8 +497,7 @@
 'Avoid using the ' + name + ' in contexts where its function would be ambiguous or misleading to users. If the interaction pattern differs significantly from what this component implies, consider an alternative component or raise a request with the design system team.',
         },
         {
-          heading: '03 — Guidelines',
-          title: 'General Usage Guidelines',
+          title: 'General usage guidelines',
           body:
 'Content & Messaging:\n' +
 'Keep any text within the ' + name + ' concise and action-oriented. Use sentence case for labels and avoid punctuation at the end of short phrases. Ensure copy is localisation-friendly and does not rely on fixed-width assumptions.\n\n' +
@@ -446,8 +509,7 @@
 'Ensure the ' + name + ' meets WCAG 2.1 AA contrast requirements. Provide a descriptive aria-label when the visible label alone is insufficient. The component must be fully operable via keyboard and announce its state correctly to screen readers.',
         },
         {
-          heading: '04 — Responsive',
-          title: 'Responsive Guidelines',
+          title: 'Responsive guidelines',
           body:
 'Desktop:\n' +
 'On desktop viewports (≥1024px), the ' + name + ' can be displayed at full size with all optional elements visible. Maintain a minimum touch/click target of 44×44px even on pointer devices. Allow the component to grow or shrink fluidly within its container using auto-layout.\n\n' +
@@ -461,6 +523,7 @@
     function setLoading(on) {
       document.getElementById('loading').classList.toggle('visible', on);
       document.getElementById('generateBtn').disabled = on;
+      document.getElementById('addDocBtn').disabled = on;
     }
 
     function showMessage(text, type) {

@@ -51,21 +51,16 @@ figma.ui.onmessage = async (msg) => {
     try {
       const { componentName, sections } = msg;
 
-    // Try loading Inter, fall back to Roboto if unavailable
-    let fontFamily = 'Inter';
-    let semiboldStyle = 'SemiBold';
-    try {
-      await figma.loadFontAsync({ family: 'Inter', style: 'Bold' });
-      await figma.loadFontAsync({ family: 'Inter', style: 'SemiBold' });
-      await figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
-    } catch (e) {
-      console.log('Inter not available, using Roboto');
-      fontFamily = 'Roboto';
-      semiboldStyle = 'Medium';
-      await figma.loadFontAsync({ family: 'Roboto', style: 'Bold' });
-      await figma.loadFontAsync({ family: 'Roboto', style: 'Medium' });
-      await figma.loadFontAsync({ family: 'Roboto', style: 'Regular' });
-    }
+    const fontFamily = 'Roboto';
+    const semiboldStyle = 'Medium';
+    await figma.loadFontAsync({ family: 'Roboto', style: 'Bold' });
+    await figma.loadFontAsync({ family: 'Roboto', style: 'Medium' });
+    await figma.loadFontAsync({ family: 'Roboto', style: 'Regular' });
+
+    const colors = {
+      purple:    { r: 0.392, g: 0.341, b: 0.976 }, // #6457f9
+      secondary: { r: 0.443, g: 0.463, b: 0.502 }, // #717680
+    };
 
     // ── Outer card frame ───────────────────────────────────────────────────
     const card = figma.createFrame();
@@ -153,15 +148,6 @@ figma.ui.onmessage = async (msg) => {
     sections.forEach((section, index) => {
       if (index > 0) addDivider(32, 32);
 
-      // Section heading
-      addText({
-        text: section.heading,
-        size: 11,
-        style: semiboldStyle,
-        color: { r: 0.4, g: 0.35, b: 1 }, // indigo accent
-        bottomSpacing: 8,
-      });
-
       // Section title (larger label)
       addText({
         text: section.title,
@@ -183,7 +169,7 @@ figma.ui.onmessage = async (msg) => {
             style: isSubheading ? semiboldStyle : 'Regular',
             color: isSubheading
               ? { r: 0.1, g: 0.1, b: 0.1 }
-              : { r: 0.32, g: 0.32, b: 0.32 },
+              : colors.secondary,
             lineHeightPercent: 160,
             bottomSpacing: isSubheading ? 4 : (li < lines.length - 1 ? 2 : 0),
           });
