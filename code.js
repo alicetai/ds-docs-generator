@@ -1,7 +1,7 @@
 // Design System Docs Generator
 // Generates generic documentation for the selected component
 
-figma.showUI(__html__, { width: 380, height: 420 });
+figma.showUI(__html__, { width: 1000, height: 600 });
 
 // Notify UI of the current selection immediately on plugin open
 function isComponent(node) {
@@ -48,11 +48,19 @@ figma.ui.onmessage = async (msg) => {
 
   // ── 2. UI sends back the docs to render ────────────────────────────────────
   if (msg.type === 'render-docs') {
-    const { componentName, sections } = msg;
+    try {
+      const { componentName, sections } = msg;
 
-    await figma.loadFontAsync({ family: 'Inter', style: 'Bold' });
-    await figma.loadFontAsync({ family: 'Inter', style: 'Bold' });
-    await figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
+    const fontFamily = 'Roboto';
+    const semiboldStyle = 'Medium';
+    await figma.loadFontAsync({ family: 'Roboto', style: 'Bold' });
+    await figma.loadFontAsync({ family: 'Roboto', style: 'Medium' });
+    await figma.loadFontAsync({ family: 'Roboto', style: 'Regular' });
+
+    const colors = {
+      purple:    { r: 0.392, g: 0.341, b: 0.976 }, // #6457f9
+      secondary: { r: 0.443, g: 0.463, b: 0.502 }, // #717680
+    };
 
     // ── Outer card frame ───────────────────────────────────────────────────
     const card = figma.createFrame();
@@ -81,7 +89,7 @@ figma.ui.onmessage = async (msg) => {
     // ── Helper: add a text node ────────────────────────────────────────────
     function addText({ text, size, style, color, bottomSpacing, lineHeightPercent, opacity }) {
       const node = figma.createText();
-      node.fontName    = { family: 'Inter', style: style || 'Regular' };
+      node.fontName    = { family: fontFamily, style: style || 'Regular' };
       node.fontSize    = size || 16;
       node.characters  = text;
       node.fills       = [{ type: 'SOLID', color: color || { r: 0.2, g: 0.2, b: 0.2 }, opacity: opacity !== undefined ? opacity : 1 }];
@@ -140,20 +148,11 @@ figma.ui.onmessage = async (msg) => {
     sections.forEach((section, index) => {
       if (index > 0) addDivider(32, 32);
 
-      // Section heading
-      addText({
-        text: section.heading,
-        size: 11,
-        style: 'Bold',
-        color: { r: 0.4, g: 0.35, b: 1 }, // indigo accent
-        bottomSpacing: 8,
-      });
-
       // Section title (larger label)
       addText({
         text: section.title,
         size: 18,
-        style: 'Bold',
+        style: semiboldStyle,
         color: { r: 0.07, g: 0.07, b: 0.07 },
         bottomSpacing: 12,
       });
@@ -167,10 +166,10 @@ figma.ui.onmessage = async (msg) => {
           addText({
             text: line,
             size: isSubheading ? 14 : 15,
-            style: isSubheading ? 'Bold' : 'Regular',
+            style: isSubheading ? semiboldStyle : 'Regular',
             color: isSubheading
               ? { r: 0.1, g: 0.1, b: 0.1 }
-              : { r: 0.32, g: 0.32, b: 0.32 },
+              : colors.secondary,
             lineHeightPercent: 160,
             bottomSpacing: isSubheading ? 4 : (li < lines.length - 1 ? 2 : 0),
           });
@@ -193,6 +192,10 @@ figma.ui.onmessage = async (msg) => {
     figma.viewport.scrollAndZoomIntoView([card]);
 
     figma.ui.postMessage({ type: 'success' });
+    } catch (error) {
+      console.error('Error rendering docs:', error);
+      figma.ui.postMessage({ type: 'error', message: 'Failed to create documentation: ' + error.message });
+    }
   }
 
   // ── 3. Cancel ──────────────────────────────────────────────────────────────
