@@ -51,147 +51,143 @@ figma.ui.onmessage = async (msg) => {
     try {
       const { componentName, sections } = msg;
 
-    const fontFamily = 'Roboto';
-    const semiboldStyle = 'Medium';
-    await figma.loadFontAsync({ family: 'Roboto', style: 'Bold' });
-    await figma.loadFontAsync({ family: 'Roboto', style: 'Medium' });
-    await figma.loadFontAsync({ family: 'Roboto', style: 'Regular' });
+      const fontFamily  = 'Roboto';
+      const semiboldStyle = 'Medium';
+      await figma.loadFontAsync({ family: 'Roboto', style: 'Bold' });
+      await figma.loadFontAsync({ family: 'Roboto', style: 'Medium' });
+      await figma.loadFontAsync({ family: 'Roboto', style: 'Regular' });
 
-    const colors = {
-      purple:    { r: 0.392, g: 0.341, b: 0.976 }, // #6457f9
-      secondary: { r: 0.443, g: 0.463, b: 0.502 }, // #717680
-    };
+      const colors = {
+        purple:    { r: 0.392, g: 0.341, b: 0.976 }, // #6457f9
+        secondary: { r: 0.443, g: 0.463, b: 0.502 }, // #717680
+      };
 
-    // ── Outer card frame ───────────────────────────────────────────────────
-    const card = figma.createFrame();
-    card.name = `${componentName} — Documentation`;
-    card.layoutMode = 'VERTICAL';
-    card.primaryAxisSizingMode = 'AUTO';
-    card.counterAxisSizingMode = 'FIXED';
-    card.resize(640, 100); // height auto-grows
-    card.paddingLeft   = 48;
-    card.paddingRight  = 48;
-    card.paddingTop    = 48;
-    card.paddingBottom = 48;
-    card.itemSpacing   = 0;
-    card.fills         = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }];
-    card.cornerRadius  = 16;
-    card.effects = [{
-      type: 'DROP_SHADOW',
-      color: { r: 0, g: 0, b: 0, a: 0.08 },
-      offset: { x: 0, y: 8 },
-      radius: 24,
-      spread: 0,
-      visible: true,
-      blendMode: 'NORMAL',
-    }];
+      const FRAME_WIDTH = 640;
+      const INNER_WIDTH = FRAME_WIDTH - 96; // 48px padding each side
 
-    // ── Helper: add a text node ────────────────────────────────────────────
-    function addText({ text, size, style, color, bottomSpacing, lineHeightPercent, opacity }) {
-      const node = figma.createText();
-      node.fontName    = { family: fontFamily, style: style || 'Regular' };
-      node.fontSize    = size || 16;
-      node.characters  = text;
-      node.fills       = [{ type: 'SOLID', color: color || { r: 0.2, g: 0.2, b: 0.2 }, opacity: opacity !== undefined ? opacity : 1 }];
-      node.textAutoResize = 'HEIGHT';
-      node.resize(544, node.height); // 640 - 48*2
-      if (lineHeightPercent) {
-        node.lineHeight = { value: lineHeightPercent, unit: 'PERCENT' };
+      // ── Helper: create a styled documentation frame ──────────────────────
+      function createDocFrame(name) {
+        const frame = figma.createFrame();
+        frame.name = name;
+        frame.layoutMode = 'VERTICAL';
+        frame.primaryAxisSizingMode = 'AUTO';
+        frame.counterAxisSizingMode = 'FIXED';
+        frame.resize(FRAME_WIDTH, 100);
+        frame.paddingLeft   = 48;
+        frame.paddingRight  = 48;
+        frame.paddingTop    = 48;
+        frame.paddingBottom = 48;
+        frame.itemSpacing   = 0;
+        frame.fills         = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }];
+        frame.cornerRadius  = 16;
+        frame.effects = [{
+          type: 'DROP_SHADOW',
+          color: { r: 0, g: 0, b: 0, a: 0.08 },
+          offset: { x: 0, y: 8 },
+          radius: 24,
+          spread: 0,
+          visible: true,
+          blendMode: 'NORMAL',
+        }];
+        return frame;
       }
-      card.appendChild(node);
 
-      if (bottomSpacing) {
-        const spacer = figma.createFrame();
-        spacer.resize(544, bottomSpacing);
-        spacer.fills = [];
-        card.appendChild(spacer);
-      }
-      return node;
-    }
-
-    // ── Helper: thin divider line ──────────────────────────────────────────
-    function addDivider(topGap = 0, bottomGap = 0) {
-      if (topGap) {
-        const s = figma.createFrame();
-        s.resize(544, topGap);
-        s.fills = [];
-        card.appendChild(s);
-      }
-      const line = figma.createFrame();
-      line.resize(544, 1);
-      line.fills = [{ type: 'SOLID', color: { r: 0.9, g: 0.9, b: 0.9 } }];
-      card.appendChild(line);
-      if (bottomGap) {
-        const s = figma.createFrame();
-        s.resize(544, bottomGap);
-        s.fills = [];
-        card.appendChild(s);
-      }
-    }
-
-    // ── Component title ────────────────────────────────────────────────────
-    addText({
-      text: componentName,
-      size: 30,
-      style: 'Bold',
-      color: { r: 0.07, g: 0.07, b: 0.07 },
-      bottomSpacing: 6,
-    });
-
-    // Spacer after title
-    const titleSpacer = figma.createFrame();
-    titleSpacer.resize(544, 32);
-    titleSpacer.fills = [];
-    card.appendChild(titleSpacer);
-
-    // ── Sections ───────────────────────────────────────────────────────────
-    sections.forEach((section, index) => {
-      if (index > 0) addDivider(32, 32);
-
-      // Section title (larger label)
-      addText({
-        text: section.title,
-        size: 18,
-        style: semiboldStyle,
-        color: { r: 0.07, g: 0.07, b: 0.07 },
-        bottomSpacing: 12,
-      });
-
-      // Body text — split on \n\n for sub-sections
-      const blocks = section.body.split('\n\n');
-      blocks.forEach((block, bi) => {
-        const lines = block.split('\n');
-        lines.forEach((line, li) => {
-          const isSubheading = line.endsWith(':') && line.length < 60;
-          addText({
-            text: line,
-            size: isSubheading ? 14 : 15,
-            style: isSubheading ? semiboldStyle : 'Regular',
-            color: isSubheading
-              ? { r: 0.1, g: 0.1, b: 0.1 }
-              : colors.secondary,
-            lineHeightPercent: 160,
-            bottomSpacing: isSubheading ? 4 : (li < lines.length - 1 ? 2 : 0),
-          });
-        });
-        if (bi < blocks.length - 1) {
-          const spacer = figma.createFrame();
-          spacer.resize(544, 14);
-          spacer.fills = [];
-          card.appendChild(spacer);
+      // ── Helper: append a text node to a frame ───────────────────────────
+      function addText(targetFrame, { text, size, style, color, bottomSpacing, lineHeightPercent }) {
+        const node = figma.createText();
+        node.fontName       = { family: fontFamily, style: style || 'Regular' };
+        node.fontSize       = size || 16;
+        node.characters     = text;
+        node.fills          = [{ type: 'SOLID', color: color || { r: 0.2, g: 0.2, b: 0.2 } }];
+        node.textAutoResize = 'HEIGHT';
+        node.resize(INNER_WIDTH, node.height);
+        if (lineHeightPercent) {
+          node.lineHeight = { value: lineHeightPercent, unit: 'PERCENT' };
         }
+        targetFrame.appendChild(node);
+        if (bottomSpacing) {
+          const spacer = figma.createFrame();
+          spacer.resize(INNER_WIDTH, bottomSpacing);
+          spacer.fills = [];
+          targetFrame.appendChild(spacer);
+        }
+        return node;
+      }
+
+      // ── Helper: append a blank spacer to a frame ────────────────────────
+      function addSpacer(targetFrame, height) {
+        const spacer = figma.createFrame();
+        spacer.resize(INNER_WIDTH, height);
+        spacer.fills = [];
+        targetFrame.appendChild(spacer);
+      }
+
+      // ── Helper: render section body text into a frame ────────────────────
+      function addSectionBody(targetFrame, body) {
+        const blocks = body.split('\n\n');
+        blocks.forEach((block, bi) => {
+          const lines = block.split('\n');
+          lines.forEach((line, li) => {
+            if (!line.trim()) return;
+            const isSubheading = line.endsWith(':') && line.length < 60;
+            addText(targetFrame, {
+              text: line,
+              size: isSubheading ? 14 : 15,
+              style: isSubheading ? semiboldStyle : 'Regular',
+              color: isSubheading ? { r: 0.1, g: 0.1, b: 0.1 } : colors.secondary,
+              lineHeightPercent: 160,
+              bottomSpacing: isSubheading ? 4 : (li < lines.length - 1 ? 2 : 0),
+            });
+          });
+          if (bi < blocks.length - 1) addSpacer(targetFrame, 14);
+        });
+      }
+
+      // ── One frame per section, stacked vertically with 40px gap ─────────
+      const sel    = figma.currentPage.selection[0];
+      const frameX = sel.x + sel.width + 80;
+      let   nextY  = sel.y;
+      const createdFrames = [];
+
+      sections.forEach((section, index) => {
+        const frameName = index === 0
+          ? `${componentName} — Documentation`
+          : `${componentName} — ${section.title}`;
+
+        const frame = createDocFrame(frameName);
+
+        // Component name header in first frame only
+        if (index === 0) {
+          addText(frame, {
+            text: componentName,
+            size: 30,
+            style: 'Bold',
+            color: { r: 0.07, g: 0.07, b: 0.07 },
+            bottomSpacing: 6,
+          });
+          addSpacer(frame, 32);
+        }
+
+        addText(frame, {
+          text: section.title,
+          size: 18,
+          style: semiboldStyle,
+          color: { r: 0.07, g: 0.07, b: 0.07 },
+          bottomSpacing: 12,
+        });
+
+        addSectionBody(frame, section.body);
+
+        frame.x = frameX;
+        frame.y = nextY;
+        nextY += frame.height + 40;
+
+        createdFrames.push(frame);
       });
-    });
 
-    // ── Position next to selected component ───────────────────────────────
-    const sel = figma.currentPage.selection[0];
-    card.x = sel.x + sel.width + 80;
-    card.y = sel.y;
-
-    figma.currentPage.selection = [card];
-    figma.viewport.scrollAndZoomIntoView([card]);
-
-    figma.ui.postMessage({ type: 'success' });
+      figma.currentPage.selection = createdFrames;
+      figma.viewport.scrollAndZoomIntoView(createdFrames);
+      figma.ui.postMessage({ type: 'success' });
     } catch (error) {
       console.error('Error rendering docs:', error);
       figma.ui.postMessage({ type: 'error', message: 'Failed to create documentation: ' + error.message });
