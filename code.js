@@ -105,11 +105,11 @@ figma.ui.onmessage = async (msg) => {
       const { componentName, sections } = msg;
       const palette = msg.colors || [];
 
-      const fontFamily  = 'Roboto';
-      const semiboldStyle = 'Medium';
-      await figma.loadFontAsync({ family: 'Roboto', style: 'Bold' });
-      await figma.loadFontAsync({ family: 'Roboto', style: 'Medium' });
-      await figma.loadFontAsync({ family: 'Roboto', style: 'Regular' });
+      const fontFamily  = 'Inter';
+      const semiboldStyle = 'Semi Bold';
+      await figma.loadFontAsync({ family: 'Inter', style: 'Bold' });
+      await figma.loadFontAsync({ family: 'Inter', style: 'Semi Bold' });
+      await figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
 
       const colors = {
         purple:    { r: 0.392, g: 0.341, b: 0.976 }, // #6457f9
