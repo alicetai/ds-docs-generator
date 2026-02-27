@@ -497,11 +497,19 @@
     }
 
     // ── Characteristics helpers ───────────────────────────────────────────────
-    function buildCharacteristicsBody(colors) {
-      if (!colors || colors.length === 0) return '';
-      return colors.map(function(c) {
-        return c.name + ', ' + c.hex.toUpperCase();
-      }).join('\n');
+    function buildCharacteristicsBody(colors, name) {
+      var count = colors ? colors.length : 0;
+      var lines = ['### Colours'];
+      if (count === 0) {
+        lines.push('No fill colours were detected in this component.');
+      } else {
+        var countText = count === 1 ? 'this 1 colour' : 'these ' + count + ' colours';
+        lines.push((name + 's') + ' use ' + countText + ':');
+        colors.forEach(function(c) {
+          lines.push(c.name + ', ' + c.hex.toUpperCase());
+        });
+      }
+      return lines.join('\n');
     }
 
     function parseColorsFromBody(body) {
@@ -534,14 +542,14 @@
         },
         {
           title: 'Characteristics',
-          body: buildCharacteristicsBody(colors),
+          body: buildCharacteristicsBody(colors, name),
         },
         {
           title: 'General usage guidelines',
           body:
-'Content & Messaging:\n' +
+'Content & messaging:\n' +
 'Keep any text within the ' + name + ' concise and action-oriented. Use sentence case for labels and avoid punctuation at the end of short phrases. Ensure copy is localisation-friendly and does not rely on fixed-width assumptions.\n\n' +
-'Alignment & Grouping:\n' +
+'Alignment & grouping:\n' +
 'Align the ' + name + ' with surrounding elements using the 8pt grid. When grouping multiple instances, maintain consistent spacing using spacing tokens (space-2, space-4, etc.) rather than arbitrary values.\n\n' +
 'Interactions:\n' +
 'The ' + name + ' should support hover, focus, active, and disabled states at minimum. Transitions should use the system\'s standard duration (150ms ease-in-out). Avoid adding interactions that conflict with native browser behaviour.\n\n' +

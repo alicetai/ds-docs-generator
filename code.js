@@ -231,24 +231,33 @@ figma.ui.onmessage = async (msg) => {
         });
 
         if (section.title === 'Characteristics') {
-          // "COLOUR" sub-label
-          addText(frame, {
-            text: 'COLOUR',
-            size: 10,
-            style: semiboldStyle,
-            color: { r: 0.612, g: 0.639, b: 0.671 },
-            bottomSpacing: 8,
+          // Parse body: ### heading → h3 style, colour lines → skip, other → body text
+          const bodyLines = section.body.split('\n');
+          bodyLines.forEach((line) => {
+            const trimmed = line.trim();
+            if (!trimmed) return;
+            if (/,\s*#[0-9a-fA-F]{6}$/i.test(trimmed)) return; // colour data lines
+            if (trimmed.startsWith('### ')) {
+              addText(frame, {
+                text: trimmed.slice(4),
+                size: 14,
+                style: semiboldStyle,
+                color: { r: 0.1, g: 0.1, b: 0.1 },
+                bottomSpacing: 8,
+              });
+            } else {
+              addText(frame, {
+                text: trimmed,
+                size: 15,
+                style: 'Regular',
+                color: colors.secondary,
+                lineHeightPercent: 160,
+                bottomSpacing: 8,
+              });
+            }
           });
 
-          if (palette.length === 0) {
-            addText(frame, {
-              text: 'No fill colours detected in this component.',
-              size: 13,
-              style: 'Regular',
-              color: colors.secondary,
-              lineHeightPercent: 160,
-            });
-          } else {
+          if (palette.length > 0) {
             // Layout constants
             const SWATCH_X  = 16;
             const NAME_X    = SWATCH_X + 20 + 12; // 48
@@ -276,22 +285,22 @@ figma.ui.onmessage = async (msg) => {
             hBg.fills = [{ type: 'SOLID', color: { r: 0.976, g: 0.98, b: 0.984 } }];
             table.appendChild(hBg);
 
-            // Header: "NAME" label
+            // Header: "Name" label
             const hName = figma.createText();
             hName.fontName = { family: fontFamily, style: semiboldStyle };
             hName.fontSize = 10;
-            hName.characters = 'NAME';
+            hName.characters = 'Name';
             hName.fills = [{ type: 'SOLID', color: { r: 0.612, g: 0.639, b: 0.671 } }];
             hName.textAutoResize = 'WIDTH_AND_HEIGHT';
             hName.x = NAME_X;
             hName.y = Math.round((HEADER_H - hName.height) / 2);
             table.appendChild(hName);
 
-            // Header: "HEX" label
+            // Header: "Hex" label
             const hHex = figma.createText();
             hHex.fontName = { family: fontFamily, style: semiboldStyle };
             hHex.fontSize = 10;
-            hHex.characters = 'HEX';
+            hHex.characters = 'Hex';
             hHex.fills = [{ type: 'SOLID', color: { r: 0.612, g: 0.639, b: 0.671 } }];
             hHex.textAutoResize = 'WIDTH_AND_HEIGHT';
             hHex.x = HEX_X;
