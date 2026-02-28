@@ -55,6 +55,21 @@ describe('notifySelection()', () => {
       type: 'selection-changed',
       componentName: 'Button',
       isComponent: true,
+      isKnownComponent: true,
+    });
+  });
+
+  test('1 component with unrecognised name — posts isKnownComponent false', () => {
+    global.figma.currentPage.selection = [{ type: 'COMPONENT', name: 'MyCustomWidget' }];
+
+    notifySelection();
+
+    expect(postMessage).toHaveBeenCalledTimes(1);
+    expect(postMessage).toHaveBeenCalledWith({
+      type: 'selection-changed',
+      componentName: 'MyCustomWidget',
+      isComponent: true,
+      isKnownComponent: false,
     });
   });
 

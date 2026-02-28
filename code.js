@@ -8,6 +8,23 @@ function isComponent(node) {
   return node.type === 'COMPONENT' || node.type === 'COMPONENT_SET';
 }
 
+const DS_COMPONENTS = [
+  'accordion', 'alert', 'avatar', 'badge', 'banner', 'breadcrumb',
+  'button', 'calendar', 'card', 'carousel', 'checkbox', 'chip',
+  'combobox', 'datepicker', 'datatable', 'dialog', 'divider', 'drawer',
+  'dropdown', 'emptystate', 'fileupload', 'formfield', 'icon',
+  'input', 'label', 'link', 'list', 'menu', 'modal', 'navbar',
+  'navigation', 'pagination', 'panel', 'popover', 'progress',
+  'radio', 'select', 'separator', 'skeleton', 'slider', 'snackbar',
+  'spinner', 'stepper', 'switch', 'tab', 'table', 'tag', 'textarea',
+  'textfield', 'timepicker', 'toast', 'toggle', 'tooltip', 'typography',
+];
+
+function isKnownDSComponent(name) {
+  const normalized = name.toLowerCase().replace(/[\s\-_/]/g, '');
+  return DS_COMPONENTS.some(c => normalized.includes(c));
+}
+
 function rgbToHex(r, g, b) {
   const toHex = c => Math.round(c * 255).toString(16).padStart(2, '0');
   return '#' + toHex(r) + toHex(g) + toHex(b);
@@ -55,7 +72,7 @@ function extractColors(rootNode) {
 function notifySelection() {
   const sel = figma.currentPage.selection;
   if (sel.length === 1 && isComponent(sel[0])) {
-    figma.ui.postMessage({ type: 'selection-changed', componentName: sel[0].name, isComponent: true });
+    figma.ui.postMessage({ type: 'selection-changed', componentName: sel[0].name, isComponent: true, isKnownComponent: isKnownDSComponent(sel[0].name) });
   } else if (sel.length === 1 && !isComponent(sel[0])) {
     figma.ui.postMessage({ type: 'selection-changed', componentName: null, isComponent: false, nodeType: sel[0].type });
   } else {

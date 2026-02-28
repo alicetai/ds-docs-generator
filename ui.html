@@ -94,6 +94,7 @@
     }
     .message.visible { display: flex; align-items: flex-start; gap: 8px; }
     .message.error   { background: #fff1f1; color: #c0392b; border: 1px solid #ffc7c7; }
+    .message.warning { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
     .message-icon { flex-shrink: 0; margin-top: 1px; }
     .message.success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
 
@@ -320,6 +321,7 @@
   <script>
     // ── State ────────────────────────────────────────────────────────────────
     let pendingComponentName = null;
+    let pendingIsKnownComponent = false;
     let pendingColors = [];
 
     // ── Bin icon SVG ─────────────────────────────────────────────────────────
@@ -424,13 +426,22 @@
       if (msg.type === 'selection-changed') {
         if (msg.componentName) {
           pendingComponentName = msg.componentName;
+          pendingIsKnownComponent = msg.isKnownComponent;
           document.getElementById('componentName').textContent = msg.componentName;
           document.getElementById('componentPill').classList.add('visible');
-          hideMessage();
           hidePreview();
+          if (!msg.isKnownComponent) {
+            showMessage("This doesn't look like a standard design system component. Try selecting a more common component like a Button or Alert.", 'warning');
+            document.getElementById('generateBtn').disabled = true;
+          } else {
+            hideMessage();
+            document.getElementById('generateBtn').disabled = false;
+          }
         } else {
           pendingComponentName = null;
+          pendingIsKnownComponent = false;
           document.getElementById('componentPill').classList.remove('visible');
+          document.getElementById('generateBtn').disabled = false;
           hidePreview();
           if (msg.nodeType) {
             var label = msg.nodeType.charAt(0) + msg.nodeType.slice(1).toLowerCase().replace('_', ' ');
@@ -576,8 +587,11 @@
 
     function showMessage(text, type) {
       var el = document.getElementById('message');
-      var icon = type === 'error' ? '<svg class="message-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="7" cy="7" r="7" fill="#c0392b"/><rect x="6.3" y="3.5" width="1.4" height="4.2" rx="0.7" fill="white"/><rect x="6.3" y="9.1" width="1.4" height="1.4" rx="0.7" fill="white"/></svg>' : '';
-      el.innerHTML = icon + '<span>' + text + '</span>';
+      var icons = {
+        error:   '<svg class="message-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="7" cy="7" r="7" fill="#c0392b"/><rect x="6.3" y="3.5" width="1.4" height="4.2" rx="0.7" fill="white"/><rect x="6.3" y="9.1" width="1.4" height="1.4" rx="0.7" fill="white"/></svg>',
+        warning: '<svg class="message-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 1L13.0622 12H0.937822L7 1Z" fill="#d97706"/><rect x="6.3" y="5.5" width="1.4" height="3.5" rx="0.7" fill="white"/><rect x="6.3" y="9.8" width="1.4" height="1.4" rx="0.7" fill="white"/></svg>',
+      };
+      el.innerHTML = (icons[type] || '') + '<span>' + text + '</span>';
       el.className = 'message ' + type + ' visible';
     }
 
