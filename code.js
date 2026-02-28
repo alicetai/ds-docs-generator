@@ -8,16 +8,17 @@ function isComponent(node) {
   return node.type === 'COMPONENT' || node.type === 'COMPONENT_SET';
 }
 
+// Common design system component names to check against
 const DS_COMPONENTS = [
-  'accordion', 'alert', 'avatar', 'badge', 'banner', 'breadcrumb',
-  'button', 'calendar', 'card', 'carousel', 'checkbox', 'chip',
-  'combobox', 'datepicker', 'datatable', 'dialog', 'divider', 'drawer',
-  'dropdown', 'emptystate', 'fileupload', 'formfield', 'icon',
-  'input', 'label', 'link', 'list', 'menu', 'modal', 'navbar',
-  'navigation', 'pagination', 'panel', 'popover', 'progress',
-  'radio', 'select', 'separator', 'skeleton', 'slider', 'snackbar',
-  'spinner', 'stepper', 'switch', 'tab', 'table', 'tag', 'textarea',
-  'textfield', 'timepicker', 'toast', 'toggle', 'tooltip', 'typography',
+  'accordion', 'alert', 'alertdialog', 'avatar', 'badge', 'backdrop', 'banner', 'bottomnav', 'breadcrumb', 'breadcrumbs',
+  'button', 'buttongroup', 'calendar', 'card', 'carousel', 'chart', 'checkbox', 'chip', 'circularloader', 'colorpicker', 'combobox', 'commandbar', 'contextmenu',
+  'datatable', 'datagrid', 'datepicker', 'dialog', 'divider', 'drawer',
+  'dropdown', 'emptystate','filepicker', 'fileupload', 'flyover', 'form','formfield', 'icon', 'iconbutton',
+  'input', 'inputfield', 'label', 'linearloader', 'link', 'list', 'listitem', 'loader', 'lookup','megamenu', 'menu', 'messagebox', 'modal', 'navbar',
+  'navigation', 'overlay', 'pagination', 'panel', 'paper', 'passwordfield', 'pill', 'popup', 'popover', 'progressbar', 'progressindicator', 'progressstepper', 'progressring',
+  'radio', 'radiobutton', 'rating', 'scrollbar', 'searchfield', 'segmentedbutton', 'segmentedcontrol', 'select', 'separator', 'sidebar', 'sidenav', 'sidepanel', 'skeleton', 'slideover', 'slider', 'snackbar',
+  'spacer', 'spinner', 'statusindicator', 'stepper', 'switch', 'tab', 'tag', 'tabbar', 'tabs', 'table', 'tag', 'textfield', 'textarea',
+  'textfield', 'timeline', 'timepicker', 'toast', 'toggle', 'togglebutton', 'toggleswitch', 'togglegroup', 'tooltip', 'topnav', 'transferlist','treemenu', 'treeview'
 ];
 
 function isKnownDSComponent(name) {
