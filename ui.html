@@ -474,7 +474,10 @@
 
     // ── Button handlers ──────────────────────────────────────────────────────
     function onGenerate() {
-      if (!pendingComponentName) return;
+      if (!pendingComponentName) {
+        showMessage('Please select a component first.', 'error');
+        return;
+      }
       hideMessage();
 
       document.getElementById('previewSection').classList.remove('visible');
