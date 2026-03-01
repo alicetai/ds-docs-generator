@@ -1,7 +1,14 @@
 # Project overview
 Figma plugin that generates design system documentation.
 
-
 # Rules
-- Don't modify manifest.json without asking
+- Enter plan mode for more complex tasks (involving architectural decisions)
 - Use existing font and color styles, unless I ask to create new styles
+
+# Security
+- Never hardocde secrets
+
+# Principles
+- Make every change as simple as possible
+- Ask yourself, "Would a senior developer approve this?"
+- Find root causes, not temporary fixes

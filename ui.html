@@ -302,7 +302,7 @@
 
   <div class="preview-container">
     <div id="previewEmpty" class="preview-empty">
-      <div>Select a component to preview documentation</div>
+      <div>Your generated documentation will appear here</div>
     </div>
     <div id="previewLoading" class="preview-loading">
       <div class="spinner"></div>
@@ -397,16 +397,21 @@
     }
 
     // ── Show edit section with content ───────────────────────────────────────
-    function showPreview(name) {
+    async function showPreview(name) {
       try {
-        var sections = buildSections(name, pendingColors);
+        var sections = await buildSections(name, pendingColors);
         renderSectionCards(sections);
         document.getElementById('previewEmpty').style.display = 'none';
         document.getElementById('previewLoading').classList.remove('visible');
         document.getElementById('previewSection').classList.add('visible');
+        document.getElementById('generateBtn').disabled = false;
         document.querySelectorAll('.section-body-textarea').forEach(autoResize);
       } catch (error) {
         console.error('Error in showPreview:', error);
+        document.getElementById('previewLoading').classList.remove('visible');
+        document.getElementById('previewEmpty').style.display = 'flex';
+        document.getElementById('generateBtn').disabled = false;
+        showMessage(error.message || 'Failed to generate documentation.', 'error');
       }
     }
 
@@ -445,7 +450,7 @@
           hidePreview();
           if (msg.nodeType) {
             var label = msg.nodeType.charAt(0) + msg.nodeType.slice(1).toLowerCase().replace('_', ' ');
-            showMessage('Please select a component, not a ' + label + '.', 'error');
+            showMessage('Please select a component.', 'error');
           } else {
             hideMessage();
           }
@@ -454,7 +459,6 @@
 
       if (msg.type === 'colors-data') {
         pendingColors = msg.colors || [];
-        document.getElementById('generateBtn').disabled = false;
         showPreview(pendingComponentName);
       }
 
@@ -537,22 +541,35 @@
         });
     }
 
-    // ── Generic documentation template ───────────────────────────────────────
-    function buildSections(name, colors) {
+    // ── AI documentation generation ──────────────────────────────────────────
+    async function generateWithAI(componentName) {
+      var response = await fetch('http://localhost:3001/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ componentName: componentName }),
+      }).catch(function() {
+        throw new Error('Could not reach the local proxy server. Run npm run server first.');
+      });
+
+      if (!response.ok) {
+        var err = await response.json().catch(function() { return {}; });
+        throw new Error(err.error || 'Server error (' + response.status + ').');
+      }
+
+      return response.json();
+    }
+
+    // ── Documentation sections (AI-generated body text) ──────────────────────
+    async function buildSections(name, colors) {
+      var ai = await generateWithAI(name);
       return [
         {
           title: 'Introduction',
-          body:
-'The ' + name + ' component is a reusable UI building block used across the design system to provide a consistent experience. It is designed to be flexible, accessible, and easy to integrate into any layout or product surface.\n\n' +
-'The ' + name + ' follows established design system tokens for colour, typography, spacing, and elevation. All visual variants are documented in the component\'s Figma page and correspond 1:1 with the front-end implementation.',
+          body: ai.introduction,
         },
         {
           title: 'When to use',
-          body:
-'When to use:\n' +
-'Use the ' + name + ' when you need to present this type of content or interaction in a consistent, recognisable way. Prefer this component over a custom implementation to maintain visual and behavioural consistency across the product.\n\n' +
-'When not to use:\n' +
-'Avoid using the ' + name + ' in contexts where its function would be ambiguous or misleading to users. If the interaction pattern differs significantly from what this component implies, consider an alternative component or raise a request with the design system team.',
+          body: 'When to use:\n' + ai.whenToUse + '\n\nWhen not to use:\n' + ai.whenNotToUse,
         },
         {
           title: 'Characteristics',
@@ -561,22 +578,14 @@
         {
           title: 'General usage guidelines',
           body:
-'Content & messaging:\n' +
-'Keep any text within the ' + name + ' concise and action-oriented. Use sentence case for labels and avoid punctuation at the end of short phrases. Ensure copy is localisation-friendly and does not rely on fixed-width assumptions.\n\n' +
-'Alignment & grouping:\n' +
-'Align the ' + name + ' with surrounding elements using the 8pt grid. When grouping multiple instances, maintain consistent spacing using spacing tokens (space-2, space-4, etc.) rather than arbitrary values.\n\n' +
-'Interactions:\n' +
-'The ' + name + ' should support hover, focus, active, and disabled states at minimum. Transitions should use the system\'s standard duration (150ms ease-in-out). Avoid adding interactions that conflict with native browser behaviour.\n\n' +
-'Accessibility:\n' +
-'Ensure the ' + name + ' meets WCAG 2.1 AA contrast requirements. Provide a descriptive aria-label when the visible label alone is insufficient. The component must be fully operable via keyboard and announce its state correctly to screen readers.',
+            'Content & messaging:\n' + ai.contentAndMessaging + '\n\n' +
+            'Alignment & grouping:\n' + ai.alignmentAndGrouping + '\n\n' +
+            'Interactions:\n' + ai.interactions + '\n\n' +
+            'Accessibility:\n' + ai.accessibility,
         },
         {
           title: 'Responsive guidelines',
-          body:
-'Desktop:\n' +
-'On desktop viewports (≥1024px), the ' + name + ' can be displayed at full size with all optional elements visible. Maintain a minimum touch/click target of 44×44px even on pointer devices. Allow the component to grow or shrink fluidly within its container using auto-layout.\n\n' +
-'Mobile:\n' +
-'On mobile viewports (<768px), simplify the ' + name + ' where necessary — hide secondary actions, reduce padding, and increase tap targets to at least 48×48px. Stack elements vertically if horizontal space is insufficient. Test on both iOS Safari and Android Chrome to catch platform-specific rendering differences.',
+          body: 'Desktop:\n' + ai.desktop + '\n\nMobile:\n' + ai.mobile,
         },
       ];
     }
