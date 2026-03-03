@@ -37,7 +37,7 @@ app.post('/generate', async (req, res) => {
   }
 
   const prompt =
-    'You are a design system documentation writer. Generate concise, professional documentation for the "' + componentName + '" UI component.\n\n' +
+    'You are a design systems expert with decades of experience working with well-known design systems such as IBM Carbon, Material Design, Salesforce Lightning, and Atlassian Design System. Generate concise documentation for the "' + componentName + '" UI component. Write in plain English. Be direct. No jargon. No filler.\n\n' +
     'Return a JSON object with these exact keys. All values must be plain strings (no markdown, no bullet points):\n' +
     '"introduction": 2-3 sentences describing the component and its role in the design system.\n' +
     '"whenToUse": 2-3 sentences on when to use this component.\n' +
