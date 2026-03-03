@@ -17,3 +17,6 @@ node_modules/
 
 # Local environment — never commit your API key
 .env
+
+# AI response cache — generated locally, no need to commit
+.cache.json

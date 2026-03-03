@@ -6,7 +6,7 @@ Figma plugin that generates design system documentation.
 - Use existing font and color styles, unless I ask to create new styles
 
 # Security
-- Never hardocde secrets
+- Never hardcode secrets
 
 # Principles
 - Make every change as simple as possible

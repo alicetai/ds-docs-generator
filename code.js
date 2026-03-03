@@ -10,7 +10,7 @@ function isComponent(node) {
 
 // Common design system component names to check against
 const DS_COMPONENTS = [
-  'accordion', 'alert', 'alertdialog', 'avatar', 'badge', 'backdrop', 'banner', 'bottomnav', 'breadcrumb', 'breadcrumbs',
+  'accordion', 'alert', 'alertdialog', 'avatar', 'badge', 'backdrop', 'banner', 'bottomnav', 'breadcrumb', 'breadcrumb',
   'button', 'buttongroup', 'calendar', 'card', 'carousel', 'chart', 'checkbox', 'chip', 'circularloader', 'colorpicker', 'combobox', 'commandbar', 'contextmenu',
   'datatable', 'datagrid', 'datepicker', 'dialog', 'divider', 'drawer',
   'dropdown', 'emptystate','filepicker', 'fileupload', 'flyover', 'form','formfield', 'icon', 'iconbutton',

@@ -5,6 +5,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 app.use(cors({ origin: '*' }));
@@ -12,6 +14,11 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3001;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const CACHE_FILE = path.join(__dirname, '.cache.json');
+
+// Load persisted cache from disk, or start fresh
+let cache = {};
+try { cache = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8')); } catch (_) {}
 
 app.post('/generate', async (req, res) => {
   const { componentName } = req.body;
@@ -19,6 +26,12 @@ app.post('/generate', async (req, res) => {
   if (!componentName) {
     return res.status(400).json({ error: 'componentName is required.' });
   }
+
+  // Return cached result if available
+  if (cache[componentName]) {
+    return res.json(cache[componentName]);
+  }
+
   if (!OPENAI_API_KEY) {
     return res.status(500).json({ error: 'OPENAI_API_KEY is not set. Add it to your .env file.' });
   }
@@ -57,6 +70,11 @@ app.post('/generate', async (req, res) => {
 
     const data = await response.json();
     const content = JSON.parse(data.choices[0].message.content);
+
+    // Store in memory and persist to disk
+    cache[componentName] = content;
+    fs.writeFileSync(CACHE_FILE, JSON.stringify(cache, null, 2));
+
     res.json(content);
   } catch (error) {
     res.status(500).json({ error: error.message });
