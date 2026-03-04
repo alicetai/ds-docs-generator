@@ -338,8 +338,8 @@
         var lines = ta.value.split('\n');
         var title = '';
         var bodyStart = 0;
-        if (lines[0] && lines[0].startsWith('## ')) {
-          title = lines[0].slice(3).trim();
+        if (lines[0] && lines[0].startsWith('# ')) {
+          title = lines[0].slice(2).trim();
           bodyStart = 1;
           while (bodyStart < lines.length && !lines[bodyStart].trim()) bodyStart++;
         }
@@ -361,9 +361,9 @@
 
       var bodyTextarea = document.createElement('textarea');
       bodyTextarea.className = 'section-body-textarea';
-      var content = section.title ? '## ' + section.title + '\n\n' + section.body : section.body;
+      var content = section.title ? '# ' + section.title + '\n\n' + section.body : section.body;
       bodyTextarea.value = content;
-      bodyTextarea.placeholder = '## Section title\n\nSection content…';
+      bodyTextarea.placeholder = '# Section title\n\nSection content…';
       bodyTextarea.addEventListener('input', function() {
         autoResize(this);
       });
@@ -517,7 +517,7 @@
     // ── Characteristics helpers ───────────────────────────────────────────────
     function buildCharacteristicsBody(colors, name) {
       var count = colors ? colors.length : 0;
-      var lines = ['### Colours'];
+      var lines = ['## Colours'];
       if (count === 0) {
         lines.push('No fill colours were detected in this component.');
       } else {
@@ -569,7 +569,7 @@
         },
         {
           title: 'When to use',
-          body: 'When to use\n' + ai.whenToUse + '\n\nWhen not to use\n' + ai.whenNotToUse,
+          body: '## When to use\n' + ai.whenToUse + '\n\n## When not to use\n' + ai.whenNotToUse,
         },
         {
           title: 'Characteristics',
@@ -578,14 +578,14 @@
         {
           title: 'General usage guidelines',
           body:
-            'Content & messaging\n' + ai.contentAndMessaging + '\n\n' +
-            'Alignment & grouping\n' + ai.alignmentAndGrouping + '\n\n' +
-            'Interactions\n' + ai.interactions + '\n\n' +
-            'Accessibility\n' + ai.accessibility,
+            '## Content & messaging\n' + ai.contentAndMessaging + '\n\n' +
+            '## Alignment & grouping\n' + ai.alignmentAndGrouping + '\n\n' +
+            '## Interactions\n' + ai.interactions + '\n\n' +
+            '## Accessibility\n' + ai.accessibility,
         },
         {
           title: 'Responsive guidelines',
-          body: 'Desktop\n' + ai.desktop + '\n\nMobile\n' + ai.mobile,
+          body: '## Desktop\n' + ai.desktop + '\n\n## Mobile\n' + ai.mobile,
         },
       ];
     }

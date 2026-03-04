@@ -136,6 +136,7 @@ figma.ui.onmessage = async (msg) => {
 
       const FRAME_WIDTH = 640;
       const INNER_WIDTH = FRAME_WIDTH - 96; // 48px padding each side
+      const BORDER_COLOR = { r: 0.898, g: 0.914, b: 0.929 }; // #e5e7eb
 
       // ── Helper: create a styled documentation frame ──────────────────────
       function createDocFrame(name) {
@@ -194,6 +195,22 @@ figma.ui.onmessage = async (msg) => {
         targetFrame.appendChild(spacer);
       }
 
+      // ── Helper: bold section heading + divider ───────────────────────────
+      function addSectionHeading(targetFrame, text) {
+        addText(targetFrame, {
+          text,
+          size: 32,
+          style: 'Bold',
+          color: { r: 0.07, g: 0.07, b: 0.07 },
+          bottomSpacing: 12,
+        });
+        const divider = figma.createRectangle();
+        divider.resize(INNER_WIDTH, 1);
+        divider.fills = [{ type: 'SOLID', color: BORDER_COLOR }];
+        targetFrame.appendChild(divider);
+        addSpacer(targetFrame, 20);
+      }
+
       // ── Helper: render section body text into a frame ────────────────────
       function addSectionBody(targetFrame, body) {
         const blocks = body.split('\n\n');
@@ -201,72 +218,80 @@ figma.ui.onmessage = async (msg) => {
           const lines = block.split('\n');
           lines.forEach((line, li) => {
             if (!line.trim()) return;
-            const isSubheading = line.endsWith(':') && line.length < 60;
-            addText(targetFrame, {
-              text: line,
-              size: isSubheading ? 14 : 15,
-              style: isSubheading ? semiboldStyle : 'Regular',
-              color: isSubheading ? { r: 0.1, g: 0.1, b: 0.1 } : colors.secondary,
-              lineHeightPercent: 160,
-              bottomSpacing: isSubheading ? 4 : (li < lines.length - 1 ? 2 : 0),
-            });
+            if (line.startsWith('# ')) {
+              addSectionHeading(targetFrame, line.slice(2).trim());
+            } else if (line.startsWith('## ')) {
+              addText(targetFrame, {
+                text: line.slice(3).trim(),
+                size: 18,
+                style: semiboldStyle,
+                color: { r: 0.1, g: 0.1, b: 0.1 },
+                lineHeightPercent: 160,
+                bottomSpacing: 4,
+              });
+            } else {
+              addText(targetFrame, {
+                text: line,
+                size: 16,
+                style: 'Regular',
+                color: colors.secondary,
+                lineHeightPercent: 160,
+                bottomSpacing: li < lines.length - 1 ? 2 : 0,
+              });
+            }
           });
           if (bi < blocks.length - 1) addSpacer(targetFrame, 14);
         });
       }
 
-      // ── One frame per section, stacked vertically with 40px gap ─────────
+      // ── Merge Introduction + When to use into one frame ──────────────────
+      const introIdx = sections.findIndex(s => s.title === 'Introduction');
+      const whenIdx  = sections.findIndex(s => s.title === 'When to use');
+      const renderSections = sections.slice();
+      if (introIdx !== -1 && whenIdx !== -1) {
+        renderSections.splice(Math.min(introIdx, whenIdx), 2, {
+          title: 'Introduction',
+          body: sections[introIdx].body + '\n\n' + sections[whenIdx].body,
+        });
+      }
+
+      // ── One frame per section, stacked horizontally with 40px gap ────────
       const sel    = figma.currentPage.selection[0];
-      const frameX = sel.x + sel.width + 80;
-      let   nextY  = sel.y;
+      let   nextX  = sel.x + sel.width + 80;
+      const frameY = sel.y;
       const createdFrames = [];
 
-      sections.forEach((section, index) => {
+      renderSections.forEach((section, index) => {
         const frameName = index === 0
-          ? `${componentName} — Documentation`
+          ? `${componentName} — Introduction`
           : `${componentName} — ${section.title}`;
 
         const frame = createDocFrame(frameName);
 
-        // Component name header in first frame only
-        if (index === 0) {
-          addText(frame, {
-            text: componentName,
-            size: 30,
-            style: 'Bold',
-            color: { r: 0.07, g: 0.07, b: 0.07 },
-            bottomSpacing: 6,
-          });
-          addSpacer(frame, 32);
-        }
-
-        addText(frame, {
-          text: section.title,
-          size: 18,
-          style: semiboldStyle,
-          color: { r: 0.07, g: 0.07, b: 0.07 },
-          bottomSpacing: 12,
-        });
+        addSectionHeading(frame, section.title);
 
         if (section.title === 'Characteristics') {
-          // Parse body: ### heading → h3 style, colour lines → skip, other → body text
+          // Parse body: # → H1, ## → H2, colour lines → skip, other → body text
           const bodyLines = section.body.split('\n');
           bodyLines.forEach((line) => {
             const trimmed = line.trim();
             if (!trimmed) return;
             if (/,\s*#[0-9a-fA-F]{6}$/i.test(trimmed)) return; // colour data lines
-            if (trimmed.startsWith('### ')) {
+            if (trimmed.startsWith('# ')) {
+              addSectionHeading(frame, trimmed.slice(2));
+            } else if (trimmed.startsWith('## ')) {
               addText(frame, {
-                text: trimmed.slice(4),
-                size: 14,
+                text: trimmed.slice(3),
+                size: 18,
                 style: semiboldStyle,
                 color: { r: 0.1, g: 0.1, b: 0.1 },
-                bottomSpacing: 8,
+                lineHeightPercent: 160,
+                bottomSpacing: 4,
               });
             } else {
               addText(frame, {
                 text: trimmed,
-                size: 15,
+                size: 16,
                 style: 'Regular',
                 color: colors.secondary,
                 lineHeightPercent: 160,
@@ -283,7 +308,6 @@ figma.ui.onmessage = async (msg) => {
             const HEADER_H  = 36;
             const ROW_H     = 40;
             const SEP_H     = 1;
-            const BORDER_COLOR = { r: 0.898, g: 0.914, b: 0.929 }; // #e5e7eb
             const totalH = HEADER_H + SEP_H + palette.length * ROW_H + (palette.length - 1) * SEP_H;
 
             // Table container (no layoutMode — children are absolute)
@@ -306,7 +330,7 @@ figma.ui.onmessage = async (msg) => {
             // Header: "Name" label
             const hName = figma.createText();
             hName.fontName = { family: fontFamily, style: semiboldStyle };
-            hName.fontSize = 10;
+            hName.fontSize = 14;
             hName.characters = 'Name';
             hName.fills = [{ type: 'SOLID', color: { r: 0.612, g: 0.639, b: 0.671 } }];
             hName.textAutoResize = 'WIDTH_AND_HEIGHT';
@@ -317,7 +341,7 @@ figma.ui.onmessage = async (msg) => {
             // Header: "Hex" label
             const hHex = figma.createText();
             hHex.fontName = { family: fontFamily, style: semiboldStyle };
-            hHex.fontSize = 10;
+            hHex.fontSize = 14;
             hHex.characters = 'Hex';
             hHex.fills = [{ type: 'SOLID', color: { r: 0.612, g: 0.639, b: 0.671 } }];
             hHex.textAutoResize = 'WIDTH_AND_HEIGHT';
@@ -359,7 +383,7 @@ figma.ui.onmessage = async (msg) => {
               // Name
               const nameNode = figma.createText();
               nameNode.fontName = { family: fontFamily, style: 'Regular' };
-              nameNode.fontSize = 13;
+              nameNode.fontSize = 14;
               nameNode.characters = color.name;
               nameNode.fills = [{ type: 'SOLID', color: { r: 0.07, g: 0.07, b: 0.07 } }];
               nameNode.textAutoResize = 'WIDTH_AND_HEIGHT';
@@ -370,7 +394,7 @@ figma.ui.onmessage = async (msg) => {
               // Hex code
               const hexNode = figma.createText();
               hexNode.fontName = { family: fontFamily, style: 'Regular' };
-              hexNode.fontSize = 12;
+              hexNode.fontSize = 14;
               hexNode.characters = color.hex.toUpperCase();
               hexNode.fills = [{ type: 'SOLID', color: colors.secondary }];
               hexNode.textAutoResize = 'WIDTH_AND_HEIGHT';
@@ -388,9 +412,9 @@ figma.ui.onmessage = async (msg) => {
           addSectionBody(frame, section.body);
         }
 
-        frame.x = frameX;
-        frame.y = nextY;
-        nextY += frame.height + 40;
+        frame.x = nextX;
+        frame.y = frameY;
+        nextX += FRAME_WIDTH + 40;
 
         createdFrames.push(frame);
       });
