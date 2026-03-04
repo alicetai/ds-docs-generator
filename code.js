@@ -169,7 +169,7 @@ figma.ui.onmessage = async (msg) => {
       function addText(targetFrame, { text, size, style, color, bottomSpacing, lineHeightPercent }) {
         const node = figma.createText();
         node.fontName       = { family: fontFamily, style: style || 'Regular' };
-        node.fontSize       = size || 16;
+        node.fontSize       = size || 14;
         node.characters     = text;
         node.fills          = [{ type: 'SOLID', color: color || { r: 0.2, g: 0.2, b: 0.2 } }];
         node.textAutoResize = 'HEIGHT';
@@ -199,7 +199,7 @@ figma.ui.onmessage = async (msg) => {
       function addSectionHeading(targetFrame, text) {
         addText(targetFrame, {
           text,
-          size: 32,
+          size: 28,
           style: 'Bold',
           color: { r: 0.07, g: 0.07, b: 0.07 },
           bottomSpacing: 12,
@@ -223,7 +223,7 @@ figma.ui.onmessage = async (msg) => {
             } else if (line.startsWith('## ')) {
               addText(targetFrame, {
                 text: line.slice(3).trim(),
-                size: 18,
+                size: 16,
                 style: semiboldStyle,
                 color: { r: 0.1, g: 0.1, b: 0.1 },
                 lineHeightPercent: 160,
@@ -232,7 +232,7 @@ figma.ui.onmessage = async (msg) => {
             } else {
               addText(targetFrame, {
                 text: line,
-                size: 16,
+                size: 14,
                 style: 'Regular',
                 color: colors.secondary,
                 lineHeightPercent: 160,
@@ -282,7 +282,7 @@ figma.ui.onmessage = async (msg) => {
             } else if (trimmed.startsWith('## ')) {
               addText(frame, {
                 text: trimmed.slice(3),
-                size: 18,
+                size: 16,
                 style: semiboldStyle,
                 color: { r: 0.1, g: 0.1, b: 0.1 },
                 lineHeightPercent: 160,
@@ -291,7 +291,7 @@ figma.ui.onmessage = async (msg) => {
             } else {
               addText(frame, {
                 text: trimmed,
-                size: 16,
+                size: 14,
                 style: 'Regular',
                 color: colors.secondary,
                 lineHeightPercent: 160,
