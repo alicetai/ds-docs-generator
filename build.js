@@ -12,9 +12,11 @@ const CSS_VAR_MAP = [
   ['--color-text-primary',     'TOKENS.textPrimary'],
   ['--color-text-secondary',   'TOKENS.textSecondary'],
   ['--color-text-tertiary',    'TOKENS.textTertiary'],
-  ['--color-background-primary', 'TOKENS.backgroundPrimary'],
-  ['--color-border',           'TOKENS.border'],
-  ['--font-size-md',           'TOKENS.fontSizeMd'],
+  ['--color-background-primary',   'TOKENS.backgroundPrimary'],
+  ['--color-background-secondary', 'TOKENS.backgroundSecondary'],
+  ['--color-border',               'TOKENS.border'],
+  ['--border-radius-md',           'TOKENS.borderRadiusMd'],
+  ['--font-size-md',               'TOKENS.fontSizeMd'],
 ];
 
 const cssVarLines = CSS_VAR_MAP

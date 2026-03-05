@@ -12,7 +12,9 @@ var TOKENS = {
   textSecondary:      '#667085',
   textTertiary:       '#98A2B3',
   backgroundPrimary:  '#fff',
+  backgroundSecondary:'#F2F4F7',
   border:             '#e5e7eb',
+  borderRadiusMd:     '8px',
   fontSizeMd:         '13px',
 };
     document.documentElement.style.setProperty('--color-brand-primary', TOKENS.brandPrimary);
@@ -21,7 +23,9 @@ var TOKENS = {
     document.documentElement.style.setProperty('--color-text-secondary', TOKENS.textSecondary);
     document.documentElement.style.setProperty('--color-text-tertiary', TOKENS.textTertiary);
     document.documentElement.style.setProperty('--color-background-primary', TOKENS.backgroundPrimary);
+    document.documentElement.style.setProperty('--color-background-secondary', TOKENS.backgroundSecondary);
     document.documentElement.style.setProperty('--color-border', TOKENS.border);
+    document.documentElement.style.setProperty('--border-radius-md', TOKENS.borderRadiusMd);
     document.documentElement.style.setProperty('--font-size-md', TOKENS.fontSizeMd);
 </script>
 <!-- TOKENS_END -->
@@ -56,15 +60,16 @@ var TOKENS = {
     /* ── Header ── */
     .header {
       display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 6px;
+      flex-direction: column;
+      align-items: left;
+      gap: 12px;
+      margin-bottom: 8px;
     }
     .icon {
       width: 32px;
       height: 32px;
       background: var(--color-brand-primary);
-      border-radius: 8px;
+      border-radius: var(--border-radius-md);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -83,12 +88,12 @@ var TOKENS = {
     .component-pill {
       display: none;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       background: #f4f3ff;
       border: 1px solid #dddaff;
-      border-radius: 8px;
-      padding: 10px 14px;
-      margin-bottom: 20px;
+      border-radius: var(--border-radius-md);
+      padding: 10px 16px;
+      margin-bottom: 12px;
     }
     .component-pill.visible { display: flex; }
     .pill-dot {
@@ -98,23 +103,23 @@ var TOKENS = {
       background: var(--color-brand-primary);
       flex-shrink: 0;
     }
-    .pill-label { font-size: 11px; color: var(--color-text-secondary); }
+    .pill-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 2px; }
     .pill-name  { font-size: var(--font-size-md); font-weight: 600; color: var(--color-brand-secondary); }
 
     /* ── Message ── */
     .message {
       display: none;
-      padding: 10px 12px;
-      border-radius: 6px;
+      padding: 10px 10px;
+      border-radius: var(--border-radius-md);
       font-size: 12px;
       margin-bottom: 16px;
       line-height: 1.5;
     }
-    .message.visible { display: flex; align-items: flex-start; gap: 8px; }
-    .message.error   { background: #fff1f1; color: #c0392b; border: 1px solid #ffc7c7; }
-    .message.warning { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
-    .message-icon { flex-shrink: 0; margin-top: 1px; }
-    .message.success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+    .message.visible { display: flex; align-items: flex-start; gap: 6px; }
+    .message.error   { background: #FEF3F2; color: #D92D20; border: 1px solid #FECDCA; }
+    .message.warning { background: #FFFAEB; color: #B54708; border: 1px solid #FEDF89; }
+    .message-icon { flex-shrink: 0; width: 18px; height: 18px; }
+    .message.success { background: #ECFDF3; color: #027A48; border: 1px solid #A6F4C5; }
 
     .spinner {
       width: 16px; height: 16px;
@@ -130,7 +135,7 @@ var TOKENS = {
     .btn {
       width: 100%;
       padding: 10px 16px;
-      border-radius: 8px;
+      border-radius: var(--border-radius-md);
       font-size: var(--font-size-md);
       font-weight: 600;
       cursor: pointer;
@@ -217,8 +222,8 @@ var TOKENS = {
 
     /* ── Section Cards (Edit pane) ── */
     .section-card {
-      background: #f5f5f5;
-      border-radius: 8px;
+      background: var(--color-background-secondary);
+      border-radius: var(--border-radius-md);
       margin-bottom: 10px;
       position: relative;
     }
@@ -498,7 +503,7 @@ var TOKENS = {
     // ── Button handlers ──────────────────────────────────────────────────────
     function onGenerate() {
       if (!pendingComponentName) {
-        showMessage('Please select a component first.', 'error');
+        showMessage('Please select a component.', 'error');
         return;
       }
       hideMessage();
@@ -654,8 +659,8 @@ var TOKENS = {
     function showMessage(text, type) {
       var el = document.getElementById('message');
       var icons = {
-        error:   '<svg class="message-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="7" cy="7" r="7" fill="#c0392b"/><rect x="6.3" y="3.5" width="1.4" height="4.2" rx="0.7" fill="white"/><rect x="6.3" y="9.1" width="1.4" height="1.4" rx="0.7" fill="white"/></svg>',
-        warning: '<svg class="message-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 1L13.0622 12H0.937822L7 1Z" fill="#d97706"/><rect x="6.3" y="5.5" width="1.4" height="3.5" rx="0.7" fill="white"/><rect x="6.3" y="9.8" width="1.4" height="1.4" rx="0.7" fill="white"/></svg>',
+        error:   '<svg class="message-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7.99999 1.33325C4.31999 1.33325 1.33333 4.31992 1.33333 7.99992C1.33333 11.6799 4.31999 14.6666 7.99999 14.6666C11.68 14.6666 14.6667 11.6799 14.6667 7.99992C14.6667 4.31992 11.68 1.33325 7.99999 1.33325ZM7.99999 8.66658C7.63333 8.66658 7.33333 8.36658 7.33333 7.99992V5.33325C7.33333 4.96659 7.63333 4.66659 7.99999 4.66659C8.36666 4.66659 8.66666 4.96659 8.66666 5.33325V7.99992C8.66666 8.36658 8.36666 8.66658 7.99999 8.66658ZM8.66666 11.3333H7.33333V9.99992H8.66666V11.3333Z" fill="#D92D20"/></svg>',
+        warning: '<svg class="message-icon" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3.3525 15.75H14.6475C15.8025 15.75 16.5225 14.4975 15.945 13.5L10.2975 3.74251C9.72 2.74501 8.28 2.74501 7.7025 3.74251L2.055 13.5C1.4775 14.4975 2.1975 15.75 3.3525 15.75ZM9 10.5C8.5875 10.5 8.25 10.1625 8.25 9.75001V8.25001C8.25 7.83751 8.5875 7.50001 9 7.50001C9.4125 7.50001 9.75 7.83751 9.75 8.25001V9.75001C9.75 10.1625 9.4125 10.5 9 10.5ZM9.75 13.5H8.25V12H9.75V13.5Z" fill="#F79009"/></svg>'
       };
       el.innerHTML = (icons[type] || '') + '<span>' + text + '</span>';
       el.className = 'message ' + type + ' visible';

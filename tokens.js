@@ -5,6 +5,8 @@ var TOKENS = {
   textSecondary:      '#667085',
   textTertiary:       '#98A2B3',
   backgroundPrimary:  '#fff',
+  backgroundSecondary:'#F2F4F7',
   border:             '#e5e7eb',
+  borderRadiusMd:     '8px',
   fontSizeMd:         '13px',
 };
