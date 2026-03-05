@@ -332,7 +332,7 @@ figma.ui.onmessage = async (msg) => {
             hName.fontName = { family: fontFamily, style: semiboldStyle };
             hName.fontSize = 14;
             hName.characters = 'Name';
-            hName.fills = [{ type: 'SOLID', color: { r: 0.612, g: 0.639, b: 0.671 } }];
+            hName.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
             hName.textAutoResize = 'WIDTH_AND_HEIGHT';
             hName.x = NAME_X;
             hName.y = Math.round((HEADER_H - hName.height) / 2);
@@ -343,7 +343,7 @@ figma.ui.onmessage = async (msg) => {
             hHex.fontName = { family: fontFamily, style: semiboldStyle };
             hHex.fontSize = 14;
             hHex.characters = 'Hex';
-            hHex.fills = [{ type: 'SOLID', color: { r: 0.612, g: 0.639, b: 0.671 } }];
+            hHex.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
             hHex.textAutoResize = 'WIDTH_AND_HEIGHT';
             hHex.x = HEX_X;
             hHex.y = Math.round((HEADER_H - hHex.height) / 2);
