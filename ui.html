@@ -465,8 +465,9 @@ var TOKENS = {
           document.getElementById('componentPill').classList.remove('visible');
           document.getElementById('generateBtn').disabled = false;
           hidePreview();
-          if (msg.nodeType) {
-            var label = msg.nodeType.charAt(0) + msg.nodeType.slice(1).toLowerCase().replace('_', ' ');
+          if (msg.nodeType === 'MULTIPLE_COMPONENTS') {
+            showMessage('Please select one component at a time.', 'error');
+          } else if (msg.nodeType) {
             showMessage('Please select a component.', 'error');
           } else {
             hideMessage();

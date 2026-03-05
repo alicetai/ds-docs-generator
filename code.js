@@ -101,10 +101,12 @@ function notifySelection() {
   const sel = figma.currentPage.selection;
   if (sel.length === 1 && isComponent(sel[0])) {
     figma.ui.postMessage({ type: 'selection-changed', componentName: sel[0].name, isComponent: true, isKnownComponent: isKnownDSComponent(sel[0].name) });
-  } else if (sel.length === 1 && !isComponent(sel[0])) {
-    figma.ui.postMessage({ type: 'selection-changed', componentName: null, isComponent: false, nodeType: sel[0].type });
-  } else {
+  } else if (sel.length === 0) {
     figma.ui.postMessage({ type: 'selection-changed', componentName: null, isComponent: false, nodeType: null });
+  } else if (sel.length > 1 && sel.every(n => isComponent(n))) {
+    figma.ui.postMessage({ type: 'selection-changed', componentName: null, isComponent: false, nodeType: 'MULTIPLE_COMPONENTS' });
+  } else {
+    figma.ui.postMessage({ type: 'selection-changed', componentName: null, isComponent: false, nodeType: 'OTHER' });
   }
 }
 
@@ -127,11 +129,11 @@ figma.ui.onmessage = async (msg) => {
     const selection = figma.currentPage.selection;
 
     if (selection.length === 0) {
-      figma.ui.postMessage({ type: 'error', message: 'Please select a component first.' });
+      figma.ui.postMessage({ type: 'error', message: 'Please select a component.' });
       return;
     }
     if (selection.length > 1) {
-      figma.ui.postMessage({ type: 'error', message: 'Please select only one component at a time.' });
+      figma.ui.postMessage({ type: 'error', message: 'Please select one component at a time.' });
       return;
     }
 
