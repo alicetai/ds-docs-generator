@@ -543,13 +543,17 @@
 
     // ── AI documentation generation ──────────────────────────────────────────
     async function generateWithAI(componentName) {
-      var response = await fetch('http://localhost:3001/generate', {
+      var fetchPromise = fetch('http://localhost:3001/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ componentName: componentName }),
       }).catch(function() {
         throw new Error('Could not reach the local proxy server. Run npm run server first.');
       });
+
+      var minDelay = new Promise(function(resolve) { setTimeout(resolve, 3000); });
+      var results = await Promise.all([fetchPromise, minDelay]);
+      var response = results[0];
 
       if (!response.ok) {
         var err = await response.json().catch(function() { return {}; });

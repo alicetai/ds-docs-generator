@@ -13,7 +13,7 @@ const DS_COMPONENTS = [
   'accordion', 'alert', 'alertdialog', 'avatar', 'badge', 'backdrop', 'banner', 'bottomnav', 'breadcrumb', 'breadcrumb',
   'button', 'buttongroup', 'calendar', 'card', 'carousel', 'chart', 'checkbox', 'chip', 'circularloader', 'colorpicker', 'combobox', 'commandbar', 'contextmenu',
   'datatable', 'datagrid', 'datepicker', 'dialog', 'divider', 'drawer',
-  'dropdown', 'emptystate','filepicker', 'fileupload', 'flyover', 'form','formfield', 'icon', 'iconbutton',
+  'dropdown', 'dropzone', 'emptystate','filepicker', 'fileupload', 'flyover', 'form','formfield', 'icon', 'iconbutton',
   'input', 'inputfield', 'label', 'linearloader', 'link', 'list', 'listitem', 'loader', 'lookup','megamenu', 'menu', 'messagebox', 'modal', 'navbar',
   'navigation', 'overlay', 'pagination', 'panel', 'paper', 'passwordfield', 'pill', 'popup', 'popover', 'progressbar', 'progressindicator', 'progressstepper', 'progressring',
   'radio', 'radiobutton', 'rating', 'scrollbar', 'searchfield', 'segmentedbutton', 'segmentedcontrol', 'select', 'separator', 'sidebar', 'sidenav', 'sidepanel', 'skeleton', 'slideover', 'slider', 'snackbar',
