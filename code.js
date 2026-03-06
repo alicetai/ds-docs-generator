@@ -84,12 +84,46 @@ function extractColors(rootNode) {
   return Array.from(seen.values());
 }
 
+function extractProperties(node) {
+  const defs = node.componentPropertyDefinitions;
+  if (!defs) return [];
+  return Object.entries(defs)
+    .filter(([_, def]) => def.type === 'TEXT' || def.type === 'BOOLEAN')
+    .map(([name, def]) => {
+      const clean = name.replace(/#\d+:\d+$/, '').trim();
+      const words = clean.replace(/[^a-zA-Z0-9]+/g, ' ').trim().split(/\s+/);
+      const camel = words.map((w, i) => i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('');
+      return { name: camel, type: def.type === 'TEXT' ? 'text' : 'boolean' };
+    });
+}
+
+const VALID_VARIANT_NAMES = ['variant', 'size', 'color', 'colour', 'sentiment'];
+
+function extractVariants(node) {
+  if (node.type !== 'COMPONENT_SET') return [];
+  const defs = node.componentPropertyDefinitions;
+  if (!defs) return [];
+  return Object.entries(defs)
+    .filter(([rawKey, def]) => {
+      const cleanName = rawKey.replace(/#\d+:\d+$/, '').trim().toLowerCase();
+      return def.type === 'VARIANT' && VALID_VARIANT_NAMES.includes(cleanName);
+    })
+    .map(([rawKey, def]) => ({
+      name: rawKey.replace(/#\d+:\d+$/, '').trim(),
+      values: def.variantOptions || [],
+    }));
+}
+
 function notifySelection() {
   const sel = figma.currentPage.selection;
   if (sel.length === 1 && isComponent(sel[0])) {
     figma.ui.postMessage({ type: 'selection-changed', componentName: sel[0].name, isComponent: true, isKnownComponent: isKnownDSComponent(sel[0].name) });
-  } else if (sel.length === 1 && !isComponent(sel[0])) {
+  } else if (sel.length === 1) {
     figma.ui.postMessage({ type: 'selection-changed', componentName: null, isComponent: false, nodeType: sel[0].type });
+  } else if (sel.length > 1 && sel.every(isComponent)) {
+    figma.ui.postMessage({ type: 'selection-changed', componentName: null, isComponent: false, nodeType: 'MULTIPLE_COMPONENTS' });
+  } else if (sel.length > 1) {
+    figma.ui.postMessage({ type: 'selection-changed', componentName: null, isComponent: false, nodeType: 'OTHER' });
   } else {
     figma.ui.postMessage({ type: 'selection-changed', componentName: null, isComponent: false, nodeType: null });
   }
@@ -103,10 +137,11 @@ figma.ui.onmessage = async (msg) => {
   // ── 0. UI requests colour data from the selected component ───────────────
   if (msg.type === 'get-colors') {
     const sel = figma.currentPage.selection;
-    const colorList = (sel.length === 1 && isComponent(sel[0]))
-      ? extractColors(sel[0])
-      : [];
-    figma.ui.postMessage({ type: 'colors-data', colors: colorList });
+    const node = (sel.length === 1 && isComponent(sel[0])) ? sel[0] : null;
+    const colorList = node ? extractColors(node) : [];
+    const propertyList = node ? extractProperties(node) : [];
+    const variantList = node ? extractVariants(node) : [];
+    figma.ui.postMessage({ type: 'colors-data', colors: colorList, properties: propertyList, variants: variantList });
   }
 
   // ── 1. User clicks "Generate" ──────────────────────────────────────────────
@@ -136,12 +171,15 @@ figma.ui.onmessage = async (msg) => {
     try {
       const { componentName, sections } = msg;
       const palette = msg.colors || [];
+      const properties = msg.properties || [];
+      const variants = msg.variants || [];
 
       const fontFamily  = 'Inter';
       const semiboldStyle = 'Semi Bold';
       await figma.loadFontAsync({ family: 'Inter', style: 'Bold' });
       await figma.loadFontAsync({ family: 'Inter', style: 'Semi Bold' });
       await figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
+      await figma.loadFontAsync({ family: 'Roboto Mono', style: 'Regular' });
 
       const colors = {
         brand:     hexToRgb(TOKENS.brandPrimary),
@@ -285,11 +323,108 @@ figma.ui.onmessage = async (msg) => {
         addSectionHeading(frame, section.title);
 
         if (section.title === 'Characteristics') {
-          // Parse body: # → H1, ## → H2, colour lines → skip, other → body text
+          // Properties table (rendered before body text)
+          if (properties.length > 0) {
+            addText(frame, {
+              text: 'Properties',
+              size: 16,
+              style: semiboldStyle,
+              color: { r: 0.1, g: 0.1, b: 0.1 },
+              lineHeightPercent: 160,
+              bottomSpacing: 4,
+            });
+
+            const PROP_INNER = INNER_WIDTH - 32; // 512px: container has 16px H padding each side
+
+            const propContainer = figma.createFrame();
+            propContainer.name = 'Properties table';
+            propContainer.layoutMode = 'VERTICAL';
+            propContainer.counterAxisSizingMode = 'FIXED';
+            propContainer.resize(INNER_WIDTH, 10);
+            propContainer.primaryAxisSizingMode = 'AUTO'; // set AFTER resize
+            propContainer.paddingLeft = 16;
+            propContainer.paddingRight = 16;
+            propContainer.paddingTop = 0;
+            propContainer.paddingBottom = 16;
+            propContainer.itemSpacing = 0;
+            propContainer.fills = [{ type: 'SOLID', color: { r: 0.976, g: 0.980, b: 0.984 } }];
+            propContainer.cornerRadius = 8;
+            propContainer.clipsContent = true;
+
+            properties.forEach((prop, i) => {
+              // Outer row: VERTICAL (name+type row above, description below)
+              const row = figma.createFrame();
+              row.layoutMode = 'VERTICAL';
+              row.counterAxisSizingMode = 'FIXED';
+              row.resize(PROP_INNER, 10);
+              row.primaryAxisSizingMode = 'AUTO'; // set AFTER resize
+              row.paddingTop = 16;
+              row.paddingBottom = 16;
+              row.itemSpacing = 6;
+              row.fills = [];
+              row.strokes = [{ type: 'SOLID', color: BORDER_COLOR }];
+              row.strokeAlign = 'INSIDE';
+              row.strokeTopWeight = 0;
+              row.strokeRightWeight = 0;
+              row.strokeBottomWeight = i < properties.length - 1 ? 1 : 0;
+              row.strokeLeftWeight = 0;
+
+              // Name + type sub-row: HORIZONTAL, space-between
+              const nameTypeRow = figma.createFrame();
+              nameTypeRow.layoutMode = 'HORIZONTAL';
+              nameTypeRow.primaryAxisSizingMode = 'FIXED';
+              nameTypeRow.counterAxisSizingMode = 'FIXED';
+              nameTypeRow.resize(PROP_INNER, 24);
+              nameTypeRow.primaryAxisAlignItems = 'SPACE_BETWEEN';
+              nameTypeRow.counterAxisAlignItems = 'MIN';
+              nameTypeRow.fills = [];
+
+              const nameText = figma.createText();
+              nameText.fontName = { family: 'Roboto Mono', style: 'Regular' };
+              nameText.fontSize = 14;
+              nameText.characters = prop.name;
+              nameText.fills = [{ type: 'SOLID', color: { r: 0.071, g: 0.071, b: 0.071 } }];
+              nameText.textAutoResize = 'WIDTH_AND_HEIGHT';
+              nameTypeRow.appendChild(nameText);
+
+              const typeText = figma.createText();
+              typeText.fontName = { family: 'Roboto Mono', style: 'Regular' };
+              typeText.fontSize = 14;
+              typeText.characters = prop.type;
+              typeText.fills = [{ type: 'SOLID', color: colors.brand }];
+              typeText.textAutoResize = 'WIDTH_AND_HEIGHT';
+              nameTypeRow.appendChild(typeText);
+
+              row.appendChild(nameTypeRow);
+
+              // Description text
+              const descText = figma.createText();
+              descText.fontName = { family: fontFamily, style: 'Regular' };
+              descText.fontSize = 14;
+              descText.characters = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
+              descText.fills = [{ type: 'SOLID', color: colors.secondary }];
+              descText.textAutoResize = 'HEIGHT';
+              descText.lineHeight = { value: 160, unit: 'PERCENT' };
+              descText.resize(PROP_INNER, descText.height);
+              row.appendChild(descText);
+
+              propContainer.appendChild(row);
+            });
+
+            frame.appendChild(propContainer);
+            addSpacer(frame, 20);
+          }
+
+          // Parse body: # → H1, ## → H2, colour lines → skip, Properties data rows → skip
+          let inPropertiesSection = false;
           const bodyLines = section.body.split('\n');
           bodyLines.forEach((line) => {
             const trimmed = line.trim();
             if (!trimmed) return;
+            // Skip ## Properties heading (already rendered above) and its data rows
+            if (trimmed === '## Properties') { inPropertiesSection = true; return; }
+            if (inPropertiesSection && trimmed.startsWith('## ')) { inPropertiesSection = false; }
+            if (inPropertiesSection) return;
             if (/,\s*#[0-9a-fA-F]{6}$/i.test(trimmed)) return; // colour data lines
             if (trimmed.startsWith('# ')) {
               addSectionHeading(frame, trimmed.slice(2));
@@ -422,13 +557,83 @@ figma.ui.onmessage = async (msg) => {
             frame.appendChild(table);
             addSpacer(frame, 4);
           }
+        } else if (section.title === 'Variants') {
+          const componentSet = figma.currentPage.selection[0];
+          const LOREM = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
+
+          // Phase 1: create instances, find max width
+          let maxInstanceWidth = 0;
+          const groupedInstances = variants.map(variantGroup =>
+            variantGroup.values.map(value => {
+              if (!componentSet || componentSet.type !== 'COMPONENT_SET') return null;
+              const match = componentSet.children.find(child =>
+                child.type === 'COMPONENT' &&
+                child.variantProperties &&
+                child.variantProperties[variantGroup.name] === value
+              );
+              if (!match) return null;
+              const inst = match.createInstance();
+              maxInstanceWidth = Math.max(maxInstanceWidth, inst.width);
+              return inst;
+            })
+          );
+
+          const effectiveInnerWidth = Math.max(INNER_WIDTH, maxInstanceWidth);
+
+          // Phase 2: expand frame + already-added children (heading, divider, spacer)
+          if (effectiveInnerWidth > INNER_WIDTH) {
+            frame.resize(effectiveInnerWidth + 96, frame.height);
+            frame.children.forEach(child => {
+              if (Math.round(child.width) === INNER_WIDTH) {
+                child.resize(effectiveInnerWidth, child.height);
+              }
+            });
+          }
+
+          // Local helpers using effectiveInnerWidth
+          const addVText = (text, size, style, color, bottomSpacing) => {
+            const node = figma.createText();
+            node.fontName = { family: fontFamily, style };
+            node.fontSize = size;
+            node.characters = text;
+            node.fills = [{ type: 'SOLID', color }];
+            node.textAutoResize = 'HEIGHT';
+            node.lineHeight = { value: 160, unit: 'PERCENT' };
+            node.resize(effectiveInnerWidth, node.height);
+            frame.appendChild(node);
+            if (bottomSpacing) {
+              const sp = figma.createFrame();
+              sp.resize(effectiveInnerWidth, bottomSpacing);
+              sp.fills = [];
+              frame.appendChild(sp);
+            }
+          };
+          const addVSpacer = (height) => {
+            const sp = figma.createFrame();
+            sp.resize(effectiveInnerWidth, height);
+            sp.fills = [];
+            frame.appendChild(sp);
+          };
+
+          // Phase 3: render content
+          variants.forEach((variantGroup, vi) => {
+            addVText(variantGroup.name, 16, semiboldStyle, { r: 0.1, g: 0.1, b: 0.1 }, 12);
+            variantGroup.values.forEach((value, i) => {
+              const inst = groupedInstances[vi][i];
+              if (inst) { frame.appendChild(inst); addVSpacer(8); }
+              addVText(value, 14, semiboldStyle, { r: 0.07, g: 0.07, b: 0.07 }, 4);
+              addVText(LOREM, 14, 'Regular', colors.secondary,
+                i < variantGroup.values.length - 1 ? 16 : 0);
+            });
+            if (vi < variants.length - 1) addVSpacer(24);
+          });
         } else {
           addSectionBody(frame, section.body);
         }
 
         frame.x = nextX;
         frame.y = frameY;
-        nextX += FRAME_WIDTH + 40;
+        nextX += frame.width + 40;
 
         createdFrames.push(frame);
       });
