@@ -21,23 +21,33 @@ let cache = {};
 try { cache = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8')); } catch (_) {}
 
 app.post('/generate', async (req, res) => {
-  const { componentName } = req.body;
+  const { componentName, componentDescription } = req.body;
 
   if (!componentName) {
     return res.status(400).json({ error: 'componentName is required.' });
   }
 
-  // Return cached result if available
-  if (cache[componentName]) {
-    return res.json(cache[componentName]);
+  // Include description in cache key so updated descriptions produce fresh results
+  const cacheKey = componentDescription
+    ? componentName + '\x00' + componentDescription
+    : componentName;
+
+  if (cache[cacheKey]) {
+    return res.json(cache[cacheKey]);
   }
 
   if (!OPENAI_API_KEY) {
     return res.status(500).json({ error: 'OPENAI_API_KEY is not set. Add it to your .env file.' });
   }
 
+  const descriptionContext = componentDescription
+    ? 'The following description was written by the designer for this component:\n"' + componentDescription + '"\nUse this to inform your documentation where relevant. Paraphrase — do not copy verbatim.\n\n'
+    : '';
+
   const prompt =
-    'You are a design systems expert with decades of experience working with well-known design systems such as IBM Carbon, Material Design, Salesforce Lightning, and Atlassian Design System. Generate concise documentation for the "' + componentName + '" UI component. Write in plain English. Be direct. No jargon. No filler.\n\n' +
+    'You are a design systems expert with decades of experience working with well-known design systems such as IBM Carbon, Material Design, Salesforce Lightning, and Atlassian Design System. Write in plain English. Be direct. No jargon. No filler.\n\n' +
+    descriptionContext +
+    'Generate concise documentation for the "' + componentName + '" UI component.\n\n' +
     'Return a JSON object with these exact keys. All values must be plain strings (no markdown, no bullet points):\n' +
     '"introduction": 2-3 sentences describing the component and its role in the design system.\n' +
     '"whenToUse": 2-3 sentences on when to use this component.\n' +
@@ -72,7 +82,7 @@ app.post('/generate', async (req, res) => {
     const content = JSON.parse(data.choices[0].message.content);
 
     // Store in memory and persist to disk
-    cache[componentName] = content;
+    cache[cacheKey] = content;
     fs.writeFileSync(CACHE_FILE, JSON.stringify(cache, null, 2));
 
     res.json(content);

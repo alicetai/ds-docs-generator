@@ -28,7 +28,7 @@ const DS_COMPONENTS = [
   'button', 'buttongroup', 'calendar', 'card', 'carousel', 'chart', 'checkbox', 'chip', 'circularloader', 'colorpicker', 'combobox', 'commandbar', 'contextmenu',
   'datatable', 'datagrid', 'datepicker', 'dialog', 'divider', 'drawer',
   'dropdown', 'dropzone', 'emptystate','filepicker', 'fileupload', 'flyover', 'form','formfield', 'icon', 'iconbutton',
-  'input', 'inputfield', 'label', 'linearloader', 'link', 'list', 'listitem', 'loader', 'lookup','megamenu', 'menu', 'messagebox', 'modal', 'navbar',
+  'input', 'inputfield', 'label', 'linearloader', 'link', 'list', 'listitem', 'loader', 'lookup', 'lozenge', 'megamenu', 'menu', 'messagebox', 'modal', 'navbar',
   'navigation', 'overlay', 'pagination', 'panel', 'paper', 'passwordfield', 'pill', 'popup', 'popover', 'progressbar', 'progressindicator', 'progressstepper', 'progressring',
   'radio', 'radiobutton', 'rating', 'scrollbar', 'searchfield', 'segmentedbutton', 'segmentedcontrol', 'select', 'separator', 'sidebar', 'sidenav', 'sidepanel', 'skeleton', 'slideover', 'slider', 'snackbar',
   'spacer', 'spinner', 'statusindicator', 'stepper', 'switch', 'tab', 'tag', 'tabbar', 'tabs', 'table', 'tag', 'textfield', 'textarea',
@@ -97,7 +97,7 @@ function extractProperties(node) {
     });
 }
 
-const VALID_VARIANT_NAMES = ['variant', 'size', 'color', 'colour', 'sentiment'];
+const VALID_VARIANT_NAMES = ['variant', 'size', 'color', 'colour', 'sentiment', 'type'];
 
 function extractVariants(node) {
   if (node.type !== 'COMPONENT_SET') return [];
@@ -141,7 +141,8 @@ figma.ui.onmessage = async (msg) => {
     const colorList = node ? extractColors(node) : [];
     const propertyList = node ? extractProperties(node) : [];
     const variantList = node ? extractVariants(node) : [];
-    figma.ui.postMessage({ type: 'colors-data', colors: colorList, properties: propertyList, variants: variantList });
+    const description = node ? (node.description || '') : '';
+    figma.ui.postMessage({ type: 'colors-data', colors: colorList, properties: propertyList, variants: variantList, description });
   }
 
   // ── 1. User clicks "Generate" ──────────────────────────────────────────────

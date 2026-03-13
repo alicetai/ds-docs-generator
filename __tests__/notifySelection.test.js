@@ -87,7 +87,7 @@ describe('notifySelection()', () => {
     });
   });
 
-  test('multiple objects selected — posts selection-changed with isComponent false and no nodeType', () => {
+  test('multiple mixed objects selected — posts nodeType "OTHER"', () => {
     global.figma.currentPage.selection = [
       { type: 'COMPONENT', name: 'Button' },
       { type: 'TEXT', name: 'Label' },
@@ -100,7 +100,24 @@ describe('notifySelection()', () => {
       type: 'selection-changed',
       componentName: null,
       isComponent: false,
-      nodeType: null,
+      nodeType: 'OTHER',
+    });
+  });
+
+  test('multiple components selected — posts nodeType "MULTIPLE_COMPONENTS"', () => {
+    global.figma.currentPage.selection = [
+      { type: 'COMPONENT', name: 'Button' },
+      { type: 'COMPONENT_SET', name: 'Input' },
+    ];
+
+    notifySelection();
+
+    expect(postMessage).toHaveBeenCalledTimes(1);
+    expect(postMessage).toHaveBeenCalledWith({
+      type: 'selection-changed',
+      componentName: null,
+      isComponent: false,
+      nodeType: 'MULTIPLE_COMPONENTS',
     });
   });
 });
