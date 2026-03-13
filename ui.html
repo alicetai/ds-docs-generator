@@ -313,15 +313,53 @@ var TOKENS = {
   <div class="preview-container">
     <div id="previewEmpty" class="preview-empty">
       <svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+      <!-- Back paper (darkest) - starts at middle paper's position, slides out after delay -->
+      <g>
+        <animateTransform attributeName="transform" type="translate"
+          values="-6.6,-6.5; -6.6,-6.5; 0,0"
+          keyTimes="0; 0.35; 1"
+          keySplines="0 0 1 1; 0.22 1 0.36 1"
+          calcMode="spline"
+          dur="1.2s" fill="freeze"
+          additive="sum"/>
+        <animateTransform attributeName="transform" type="rotate"
+          values="-8 87 90.1; -8 87 90.1; 0 87 90.1"
+          keyTimes="0; 0.35; 1"
+          keySplines="0 0 1 1; 0.22 1 0.36 1"
+          calcMode="spline"
+          dur="1.2s" fill="freeze"
+          additive="sum"/>
         <path d="M137.082 46.208L67.8714 26.3621C63.6242 25.1443 59.194 27.6 57.9762 31.8471L31.515 124.128C30.2971 128.375 32.7529 132.806 37 134.023L106.211 153.869C110.458 155.087 114.888 152.631 116.106 148.384L142.567 56.1032C143.785 51.8561 141.329 47.4258 137.082 46.208Z" fill="#D0D5DD"/>
+      </g>
+
+      <!-- Middle paper - starts at front paper's position, slides out immediately -->
+      <g>
+        <animateTransform attributeName="transform" type="translate"
+          values="-7.4,-5.6; 0,0; 0,0"
+          keyTimes="0; 0.55; 1"
+          keySplines="0.22 1 0.36 1; 0 0 1 1"
+          calcMode="spline"
+          dur="1.2s" fill="freeze"
+          additive="sum"/>
+        <animateTransform attributeName="transform" type="rotate"
+          values="-8 80.4 83.6; 0 80.4 83.6; 0 80.4 83.6"
+          keyTimes="0; 0.55; 1"
+          keySplines="0.22 1 0.36 1; 0 0 1 1"
+          calcMode="spline"
+          dur="1.2s" fill="freeze"
+          additive="sum"/>
         <path d="M123.887 33.1338L52.5874 23.1134C48.2121 22.4985 44.1668 25.5469 43.5519 29.9221L30.1912 124.988C29.5763 129.363 32.6247 133.409 37 134.023L108.299 144.044C112.675 144.659 116.72 141.61 117.335 137.235L130.695 42.1694C131.31 37.7941 128.262 33.7488 123.887 33.1338Z" fill="#E4E7EC"/>
-        <path d="M29 30.0234C29 25.6051 32.5817 22.0234 37 22.0234H99L117 40.0234V126.023C117 130.441 113.418 134.023 109 134.023H37C32.5817 134.023 29 130.441 29 126.023V30.0234Z" fill="#F2F4F7"/>
-        <path d="M99 22.0234L117 40.0234H107C102.582 40.0234 99 36.4417 99 32.0234V22.0234Z" fill="#D0D5DD"/>
-        <path d="M92.5 54.0234H45.5C44.1193 54.0234 43 55.1427 43 56.5234C43 57.9041 44.1193 59.0234 45.5 59.0234H92.5C93.8807 59.0234 95 57.9041 95 56.5234C95 55.1427 93.8807 54.0234 92.5 54.0234Z" fill="#D0D5DD"/>
-        <path d="M84.5 68.0234H45.5C44.1193 68.0234 43 69.1427 43 70.5234C43 71.9041 44.1193 73.0234 45.5 73.0234H84.5C85.8807 73.0234 87 71.9041 87 70.5234C87 69.1427 85.8807 68.0234 84.5 68.0234Z" fill="#D0D5DD"/>
-        <path d="M96.5 82.0234H45.5C44.1193 82.0234 43 83.1427 43 84.5234C43 85.9041 44.1193 87.0234 45.5 87.0234H96.5C97.8807 87.0234 99 85.9041 99 84.5234C99 83.1427 97.8807 82.0234 96.5 82.0234Z" fill="#D0D5DD"/>
-        <path d="M78.5 96.0234H45.5C44.1193 96.0234 43 97.1427 43 98.5234C43 99.9041 44.1193 101.023 45.5 101.023H78.5C79.8807 101.023 81 99.9041 81 98.5234C81 97.1427 79.8807 96.0234 78.5 96.0234Z" fill="#D0D5DD"/>
-        <path d="M88.5 110.023H45.5C44.1193 110.023 43 111.143 43 112.523C43 113.904 44.1193 115.023 45.5 115.023H88.5C89.8807 115.023 91 113.904 91 112.523C91 111.143 89.8807 110.023 88.5 110.023Z" fill="#D0D5DD"/>
+      </g>
+
+      <!-- Front paper (stays put) -->
+      <path d="M29 30.0234C29 25.6051 32.5817 22.0234 37 22.0234H99L117 40.0234V126.023C117 130.441 113.418 134.023 109 134.023H37C32.5817 134.023 29 130.441 29 126.023V30.0234Z" fill="#F2F4F7"/>
+      <path d="M99 22.0234L117 40.0234H107C102.582 40.0234 99 36.4417 99 32.0234V22.0234Z" fill="#D0D5DD"/>
+      <rect x="43" y="54.5234" width="52" height="4" rx="2" fill="#D0D5DD"/>
+      <rect x="43" y="68.5234" width="44" height="4" rx="2" fill="#D0D5DD"/>
+      <rect x="43" y="82.5234" width="56" height="4" rx="2" fill="#D0D5DD"/>
+      <rect x="43" y="96.5234" width="38" height="4" rx="2" fill="#D0D5DD"/>
+      <rect x="43" y="110.523" width="48" height="4" rx="2" fill="#D0D5DD"/>
       </svg>
       <div style="margin-top: 24px;">Your generated documentation will appear here</div>
     </div>
