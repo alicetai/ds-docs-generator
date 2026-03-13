@@ -682,8 +682,7 @@ var TOKENS = {
     async function buildSections(name, colors, properties, variants, description) {
       var ai = await generateWithAI(name, description);
       var sections = [
-        { title: 'Introduction', body: ai.introduction },
-        { title: 'When to use', body: '## When to use\n' + ai.whenToUse + '\n\n## When not to use\n' + ai.whenNotToUse },
+        { title: 'Introduction', body: ai.introduction + '\n\n## When to use\n' + ai.whenToUse + '\n\n## When not to use\n' + ai.whenNotToUse },
         { title: 'Characteristics', body: buildCharacteristicsBody(colors, name, properties) },
       ];
       if (variants && variants.length > 0) {

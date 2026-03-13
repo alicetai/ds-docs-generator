@@ -306,16 +306,7 @@ figma.ui.onmessage = async (msg) => {
         });
       }
 
-      // ── Merge Introduction + When to use into one frame ──────────────────
-      const introIdx = sections.findIndex(s => s.title === 'Introduction');
-      const whenIdx  = sections.findIndex(s => s.title === 'When to use');
       const renderSections = sections.slice();
-      if (introIdx !== -1 && whenIdx !== -1) {
-        renderSections.splice(Math.min(introIdx, whenIdx), 2, {
-          title: 'Introduction',
-          body: sections[introIdx].body + '\n\n' + sections[whenIdx].body,
-        });
-      }
 
       // ── One frame per section, stacked horizontally with 40px gap ────────
       const sel    = figma.currentPage.selection[0];
