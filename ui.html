@@ -549,6 +549,7 @@ var TOKENS = {
         lines.push('## Properties');
         properties.forEach(function(prop) {
           lines.push(prop.name + ' | ' + prop.type);
+          lines.push(prop.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.');
         });
         lines.push('');
       }
@@ -582,7 +583,7 @@ var TOKENS = {
       variants.forEach(function(variant, i) {
         lines.push('## ' + variant.name);
         variant.values.forEach(function(value) {
-          lines.push(value);
+          lines.push('### ' + value);
           lines.push('Lorem ipsum dolor sit amet, consectetur adipiscing elit.');
         });
         if (i < variants.length - 1) lines.push('');
@@ -593,15 +594,25 @@ var TOKENS = {
     function parsePropertiesFromBody(body) {
       var inProps = false;
       var props = [];
-      body.split('\n').forEach(function(line) {
-        var trimmed = line.trim();
-        if (trimmed === '## Properties') { inProps = true; return; }
-        if (trimmed.startsWith('## ')) { inProps = false; return; }
+      var lines = body.split('\n');
+      for (var i = 0; i < lines.length; i++) {
+        var trimmed = lines[i].trim();
+        if (trimmed === '## Properties') { inProps = true; continue; }
+        if (inProps && trimmed.startsWith('## ')) { inProps = false; continue; }
         if (inProps) {
           var match = trimmed.match(/^(.+?)\s*\|\s*(text|boolean)$/i);
-          if (match) props.push({ name: match[1].trim(), type: match[2].toLowerCase() });
+          if (match) {
+            var desc = '';
+            // Next non-empty line that isn't a property or heading is the description
+            var next = (i + 1 < lines.length) ? lines[i + 1].trim() : '';
+            if (next && !next.startsWith('## ') && !next.match(/^.+?\s*\|\s*(text|boolean)$/i)) {
+              desc = next;
+              i++; // consume description line
+            }
+            props.push({ name: match[1].trim(), type: match[2].toLowerCase(), description: desc });
+          }
         }
-      });
+      }
       return props;
     }
 

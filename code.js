@@ -281,6 +281,15 @@ figma.ui.onmessage = async (msg) => {
                 lineHeightPercent: 160,
                 bottomSpacing: 4,
               });
+            } else if (line.startsWith('### ')) {
+              addText(targetFrame, {
+                text: line.slice(4).trim(),
+                size: 14,
+                style: semiboldStyle,
+                color: { r: 0.07, g: 0.07, b: 0.07 },
+                lineHeightPercent: 160,
+                bottomSpacing: 2,
+              });
             } else {
               addText(targetFrame, {
                 text: line,
@@ -345,7 +354,7 @@ figma.ui.onmessage = async (msg) => {
             propContainer.paddingLeft = 16;
             propContainer.paddingRight = 16;
             propContainer.paddingTop = 0;
-            propContainer.paddingBottom = 16;
+            propContainer.paddingBottom = 0;
             propContainer.itemSpacing = 0;
             propContainer.fills = [{ type: 'SOLID', color: { r: 0.976, g: 0.980, b: 0.984 } }];
             propContainer.cornerRadius = 8;
@@ -401,7 +410,7 @@ figma.ui.onmessage = async (msg) => {
               const descText = figma.createText();
               descText.fontName = { family: fontFamily, style: 'Regular' };
               descText.fontSize = 14;
-              descText.characters = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
+              descText.characters = prop.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
               descText.fills = [{ type: 'SOLID', color: colors.secondary }];
               descText.textAutoResize = 'HEIGHT';
               descText.lineHeight = { value: 160, unit: 'PERCENT' };
@@ -436,6 +445,15 @@ figma.ui.onmessage = async (msg) => {
                 color: { r: 0.1, g: 0.1, b: 0.1 },
                 lineHeightPercent: 160,
                 bottomSpacing: 4,
+              });
+            } else if (trimmed.startsWith('### ')) {
+              addText(frame, {
+                text: trimmed.slice(4),
+                size: 14,
+                style: semiboldStyle,
+                color: { r: 0.07, g: 0.07, b: 0.07 },
+                lineHeightPercent: 160,
+                bottomSpacing: 2,
               });
             } else {
               addText(frame, {
@@ -620,10 +638,11 @@ figma.ui.onmessage = async (msg) => {
             addVText(variantGroup.name, 16, semiboldStyle, { r: 0.1, g: 0.1, b: 0.1 }, 12);
             variantGroup.values.forEach((value, i) => {
               const inst = groupedInstances[vi][i];
-              if (inst) { frame.appendChild(inst); addVSpacer(8); }
+              const isLast = i === variantGroup.values.length - 1;
               addVText(value, 14, semiboldStyle, { r: 0.07, g: 0.07, b: 0.07 }, 4);
-              addVText(LOREM, 14, 'Regular', colors.secondary,
-                i < variantGroup.values.length - 1 ? 16 : 0);
+              addVText(LOREM, 14, 'Regular', colors.secondary, 8);
+              if (inst) { frame.appendChild(inst); }
+              if (!isLast) addVSpacer(24);
             });
             if (vi < variants.length - 1) addVSpacer(24);
           });
